@@ -1,0 +1,21 @@
+{
+  "url": "http://localhost:3000/api/docs",
+  "output": "./src/lib/generated",
+  "name": "api-client.ts",
+  "httpClientType": "fetch",
+  "generateClient": true,
+  "generateRouteTypes": true,
+  "generateResponses": true,
+  "toJS": false,
+  "extractRequestParams": true,
+  "extractRequestBody": true,
+  "extractEnums": true,
+  "unwrapResponseData": true,
+  "modular": false,
+  "cleanOutput": true,
+  "defaultResponseAsSuccess": false,
+  "generateUnionEnums": true,
+  "enumNamesAsValues": false,
+  "moduleNameFirstTag": false
+}
+

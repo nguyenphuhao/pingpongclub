@@ -1,0 +1,173 @@
+# OpenAPI Schema Definitions for User
+# Trong NestJS: convert sang @ApiProperty() decorators
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "cmilemais0000cyky8rwfxjrw"
+        email:
+          type: string
+          format: email
+          example: "user@dokifree.com"
+        phone:
+          type: string
+          nullable: true
+          example: "+84912345678"
+        firebaseUid:
+          type: string
+          nullable: true
+          example: "firebase-uid-123"
+        provider:
+          type: string
+          nullable: true
+          description: "Auth provider: google.com, facebook.com, password, phone"
+          example: "google.com"
+        firstName:
+          type: string
+          nullable: true
+          example: "John"
+        lastName:
+          type: string
+          nullable: true
+          example: "Doe"
+        avatar:
+          type: string
+          nullable: true
+          format: uri
+          example: "https://example.com/avatar.jpg"
+        role:
+          type: string
+          enum: [USER, ADMIN, MODERATOR]
+          example: "USER"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED, DELETED]
+          example: "ACTIVE"
+        emailVerified:
+          type: boolean
+          example: true
+        phoneVerified:
+          type: boolean
+          example: false
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateUserDto:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: "newuser@dokifree.com"
+        phone:
+          type: string
+          example: "+84912345678"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        password:
+          type: string
+          minLength: 6
+          example: "password123"
+        role:
+          type: string
+          enum: [USER, ADMIN, MODERATOR]
+          example: "USER"
+
+    UpdateUserDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        phone:
+          type: string
+          example: "+84912345678"
+        avatar:
+          type: string
+          format: uri
+          example: "https://example.com/avatar.jpg"
+
+    PaginatedUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 100
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            totalPages:
+              type: integer
+              example: 10
+            hasNextPage:
+              type: boolean
+              example: true
+            hasPreviousPage:
+              type: boolean
+              example: false
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/User'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "USER_NOT_FOUND"
+            message:
+              type: string
+              example: "User not found"
+            details:
+              type: object
+

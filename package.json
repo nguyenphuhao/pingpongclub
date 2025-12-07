@@ -1,4 +1,36 @@
 {
-  "name": "dokifree",
-  "packageManager": "yarn@4.9.1"
+  "name": "dokifree-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:admin": "turbo run dev --filter=admin-portal",
+    "dev:mobile": "turbo run dev --filter=mobile-app",
+    "dev:api": "turbo run dev --filter=api-server",
+    
+    "build": "turbo run build",
+    "build:admin": "turbo run build --filter=admin-portal",
+    "build:mobile": "turbo run build --filter=mobile-app",
+    "build:api": "turbo run build --filter=api-server",
+    
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    
+    "db:generate": "yarn workspace @dokifree/database prisma:generate",
+    "db:migrate": "yarn workspace @dokifree/database prisma:migrate",
+    "db:studio": "yarn workspace @dokifree/database prisma:studio",
+    "db:seed": "yarn workspace @dokifree/database prisma:seed",
+    
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5"
+  },
+  "packageManager": "yarn@1.22.22"
 }
+

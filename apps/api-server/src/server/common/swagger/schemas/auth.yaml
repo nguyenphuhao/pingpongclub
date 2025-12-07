@@ -1,0 +1,230 @@
+# OpenAPI Schema Definitions for Auth
+
+components:
+  schemas:
+    FirebaseAuthDto:
+      type: object
+      required:
+        - idToken
+      properties:
+        idToken:
+          type: string
+          description: Firebase ID token from client
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        deviceInfo:
+          type: object
+          properties:
+            fcmToken:
+              type: string
+              example: "fcm-token-123"
+            platform:
+              type: string
+              enum: [IOS, ANDROID, WEB]
+              example: "WEB"
+            deviceId:
+              type: string
+              example: "device-123"
+            model:
+              type: string
+              example: "iPhone 14 Pro"
+            osVersion:
+              type: string
+              example: "16.0"
+
+    FirebaseAuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            refreshToken:
+              type: string
+              example: "refresh-token-abc123"
+            isNewUser:
+              type: boolean
+              example: false
+
+    RefreshTokenDto:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: "refresh-token-abc123"
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            refreshToken:
+              type: string
+              example: "refresh-token-xyz789"
+            expiresIn:
+              type: integer
+              example: 604800
+              description: Token expiration time in seconds
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/User'
+
+    LoginHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Login history record ID
+          example: "clx123456789"
+        platform:
+          type: string
+          enum: [IOS, ANDROID, WEB]
+          example: "WEB"
+        deviceId:
+          type: string
+          nullable: true
+          description: Device identifier
+          example: "device-123"
+        deviceModel:
+          type: string
+          nullable: true
+          example: "iPhone 14 Pro"
+        osVersion:
+          type: string
+          nullable: true
+          example: "16.0"
+        ipAddress:
+          type: string
+          nullable: true
+          example: "192.168.1.1"
+        userAgent:
+          type: string
+          nullable: true
+          example: "Mozilla/5.0..."
+        location:
+          type: string
+          nullable: true
+          example: "Ho Chi Minh City, Vietnam"
+        loginMethod:
+          type: string
+          enum: [FIREBASE, OTP_EMAIL, OTP_PHONE]
+          example: "OTP_EMAIL"
+        status:
+          type: string
+          enum: [SUCCESS, FAILED]
+          example: "SUCCESS"
+        failureReason:
+          type: string
+          nullable: true
+        loginAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        refreshTokenId:
+          type: string
+          nullable: true
+          description: Associated refresh token ID (if session is still active)
+
+    PaginatedLoginHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoginHistoryItem'
+        total:
+          type: integer
+          example: 50
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        totalPages:
+          type: integer
+          example: 3
+
+    ActiveSession:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Refresh token ID
+          example: "clx987654321"
+        deviceId:
+          type: string
+          nullable: true
+          description: Device identifier
+          example: "device-123"
+        platform:
+          type: string
+          enum: [IOS, ANDROID, WEB]
+          nullable: true
+          example: "WEB"
+        ipAddress:
+          type: string
+          nullable: true
+          example: "192.168.1.1"
+        userAgent:
+          type: string
+          nullable: true
+          example: "Mozilla/5.0..."
+        lastUsedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T09:00:00Z"
+        expiresAt:
+          type: string
+          format: date-time
+          example: "2024-02-15T09:00:00Z"
+        isCurrent:
+          type: boolean
+          description: Whether this is the current session
+          example: true
+
+    ActiveSessionsResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveSession'
+        total:
+          type: integer
+          example: 3
+
+    ForceLogoutAllDto:
+      type: object
+      properties:
+        excludeCurrent:
+          type: boolean
+          default: true
+          description: Whether to exclude current device from logout
+          example: true
+

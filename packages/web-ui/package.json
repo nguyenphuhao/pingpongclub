@@ -1,0 +1,30 @@
+{
+  "name": "@dokifree/web-ui",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./tokens": "./dist/tokens/index.js",
+    "./tokens/colors": "./dist/tokens/colors.js",
+    "./components/ui/*": "./dist/components/ui/*.js",
+    "./tailwind-config": "./tailwind.config.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/react": "^18",
+    "tailwindcss": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  }
+}
+

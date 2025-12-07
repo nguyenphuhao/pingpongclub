@@ -1,0 +1,3 @@
+- Do not create instruction file after finishing a task
+- file name for @docs folder should be the same format with folder name in this app. 
+- For diagram, use mermaidjs syntax

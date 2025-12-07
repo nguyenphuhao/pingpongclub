@@ -1,0 +1,482 @@
+# Dokifree Backend - Cursor AI Rules
+
+## 🎯 Tổng quan Dự án
+
+Đây là Next.js backend được thiết kế theo **Clean Architecture + Domain-Driven Design**, sẵn sàng migrate sang NestJS. Business logic hoàn toàn tách biệt khỏi framework để dễ dàng migrate và tái sử dụng.
+
+---
+
+## 🏗️ Kiến trúc Layered Architecture
+
+### 1. Presentation Layer (API Routes)
+- **Location:** `src/app/api/`
+- **Responsibility:** Parse HTTP request, validate input, call service, format response
+- **Rules:**
+  - ❌ KHÔNG BAO GIỜ viết business logic trong API routes
+  - ❌ KHÔNG BAO GIỜ truy cập database trực tiếp
+  - ✅ CHỈ xử lý HTTP concerns (parse request, format response)
+  - ✅ Sử dụng `validateBody()` và `validateQuery()` với Zod schemas
+  - ✅ Sử dụng `successResponse()` và `errorResponse()` helpers
+  - ✅ Luôn thêm `@swagger` JSDoc comments cho mọi endpoint
+
+### 2. Application Layer (Services)
+- **Location:** `src/server/modules/*/application/`
+- **Responsibility:** Business logic, use cases, orchestration
+- **Rules:**
+  - ❌ KHÔNG BAO GIỜ import từ `next/*` packages
+  - ❌ KHÔNG BAO GIỜ xử lý HTTP concerns (request/response)
+  - ✅ LUÔN là pure TypeScript (framework-agnostic)
+  - ✅ LUÔN sử dụng dependency injection pattern
+  - ✅ LUÔN throw custom exceptions (từ `@/server/common/exceptions`)
+  - ✅ Tất cả business logic phải nằm ở đây
+
+### 3. Domain Layer (Entities)
+- **Location:** `src/server/modules/*/domain/`
+- **Responsibility:** Core business entities, domain logic, business rules
+- **Rules:**
+  - ❌ KHÔNG BAO GIỜ có external dependencies
+  - ✅ LUÔN là pure domain logic
+  - ✅ LUÔN self-contained
+  - ✅ Business methods (e.g., `isActive()`, `canLogin()`)
+
+### 4. Infrastructure Layer (Repositories)
+- **Location:** `src/server/modules/*/infrastructure/`
+- **Responsibility:** Database access, external APIs, file storage
+- **Rules:**
+  - ✅ LUÔN implement interfaces từ `@/server/common/interfaces`
+  - ✅ LUÔN sử dụng Prisma Client cho database access
+  - ✅ LUÔN return Domain Entities (không return raw Prisma objects)
+  - ✅ Hide implementation details
+
+---
+
+## 📂 Cấu trúc Thư mục
+
+```
+src/
+├── app/                      # Next.js App Router (HTTP Layer)
+│   ├── api/                  # API Routes handlers
+│   │   └── [module]/
+│   │       └── route.ts      # ❌ NO business logic
+│   └── api-docs/             # Swagger UI
+│
+├── server/                   # Backend logic (Framework-agnostic)
+│   ├── modules/              # Domain modules
+│   │   └── [module-name]/
+│   │       ├── domain/       # Entities & business rules
+│   │       ├── application/  # Services & use cases
+│   │       └── infrastructure/ # Repositories
+│   │
+│   ├── common/
+│   │   ├── adapters/         # Firebase, Email, SMS adapters
+│   │   ├── config/           # Environment config
+│   │   ├── database/         # Prisma client
+│   │   ├── exceptions/       # Custom exceptions
+│   │   ├── interfaces/       # Shared interfaces
+│   │   └── swagger/          # Swagger configuration & schemas
+│   │
+│   └── http/
+│       ├── middleware/       # Auth middleware
+│       └── utils/            # Response & validation helpers
+│
+└── shared/                   # Code dùng chung FE + BE
+    ├── dtos/                 # Zod schemas + TypeScript types
+    └── types/                # Shared TypeScript types
+```
+
+---
+
+## 🔄 Request Flow Pattern
+
+**LUÔN tuân theo flow này:**
+
+```
+HTTP Request
+    ↓
+1. API Route (app/api/) - Parse & validate
+    ↓
+2. Service (server/modules/*/application/) - Business logic
+    ↓
+3. Repository (server/modules/*/infrastructure/) - Data access
+    ↓
+4. Prisma - Database query
+    ↓
+5. Entity (server/modules/*/domain/) - Domain object
+    ↓
+6. Service returns result
+    ↓
+7. API Route formats response
+    ↓
+HTTP Response
+```
+
+---
+
+## 📝 Nguyên tắc Phát triển
+
+### 1. Module Structure
+Khi tạo module mới, LUÔN theo cấu trúc:
+
+```
+server/modules/[module-name]/
+├── domain/
+│   └── [module].entity.ts       # Domain entity với business methods
+├── application/
+│   └── [module].service.ts      # Business logic & use cases
+└── infrastructure/
+    └── [module].repository.ts   # Database access
+```
+
+### 2. API Routes Pattern
+
+```typescript
+// ✅ ĐÚNG - API route chỉ parse và delegate
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Parse & validate
+    const query = validateQuery(QueryDtoSchema, queryData);
+    
+    // 2. Call service (business logic ở đây)
+    const result = await service.doSomething(query);
+    
+    // 3. Format response
+    return successResponse(result.data, 200, result.meta);
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+// ❌ SAI - Business logic trong route
+export async function GET(request: NextRequest) {
+  const users = await prisma.user.findMany(); // ❌ Direct DB access
+  if (users.length > 10) { // ❌ Business logic
+    // ...
+  }
+}
+```
+
+### 3. Service Pattern
+
+```typescript
+// ✅ ĐÚNG - Pure TypeScript, framework-agnostic
+export class UserService {
+  constructor(
+    private repository: UserRepository,
+    private notificationService: NotificationService,
+  ) {}
+
+  async createUser(dto: CreateUserDto): Promise<UserEntity> {
+    // Business logic here
+    const user = await this.repository.create(dto);
+    await this.notificationService.sendWelcomeEmail(user);
+    return user;
+  }
+}
+
+// ❌ SAI - Framework dependencies
+import { NextRequest } from 'next/server'; // ❌ NO!
+
+export class UserService {
+  async createUser(request: NextRequest) { // ❌ NO HTTP in services!
+    // ...
+  }
+}
+```
+
+### 4. Repository Pattern
+
+```typescript
+// ✅ ĐÚNG - Return domain entities
+export class UserRepository implements IRepository<UserEntity> {
+  async findById(id: string): Promise<UserEntity | null> {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user ? new UserEntity(user) : null; // ✅ Return entity
+  }
+}
+
+// ❌ SAI - Return raw Prisma objects
+async findById(id: string) {
+  return await prisma.user.findUnique({ where: { id } }); // ❌ Raw object
+}
+```
+
+### 5. DTOs & Validation
+
+```typescript
+// ✅ LUÔN define DTOs trong shared/dtos/ với Zod schemas
+// shared/dtos/user.dto.ts
+import { z } from 'zod';
+
+export const CreateUserDtoSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+});
+
+export type CreateUserDto = z.infer<typeof CreateUserDtoSchema>;
+
+// ✅ Sử dụng trong API routes
+const dto = await validateBody(CreateUserDtoSchema, body);
+```
+
+### 6. Error Handling
+
+```typescript
+// ✅ LUÔN sử dụng custom exceptions
+import { NotFoundException, ValidationException } from '@/server/common/exceptions';
+
+// In service:
+if (!user) {
+  throw new NotFoundException('User not found');
+}
+
+// In route:
+try {
+  // ...
+} catch (error) {
+  return errorResponse(error); // Helper tự động handle AppException
+}
+```
+
+---
+
+## 🔐 Authentication Pattern
+
+### Protected Routes
+```typescript
+// API route với authentication
+export async function GET(request: NextRequest) {
+  // 1. Extract & verify token
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) {
+    throw new UnauthorizedException('Missing token');
+  }
+  
+  // 2. Verify token
+  const payload = await jwtService.verifyAccessToken(token);
+  
+  // 3. Get current user
+  const currentUser = await userService.getUserById(payload.sub);
+  
+  // 4. Business logic với user context
+  const result = await service.doSomething(currentUser);
+  
+  return successResponse(result);
+}
+```
+
+---
+
+## 📖 Swagger Documentation
+
+### LUÔN thêm @swagger comments cho mọi endpoint
+
+```typescript
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: List users with pagination
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedUserResponse'
+ */
+export async function GET(request: NextRequest) {
+  // Implementation
+}
+```
+
+### Schema Definitions
+- Schemas được define trong `src/server/common/swagger/schemas/*.yaml`
+- Reuse schemas với `$ref: '#/components/schemas/SchemaName'`
+- Đảm bảo Swagger schema match với Zod schema
+
+---
+
+## 🗄️ Database (Prisma)
+
+### Quy tắc Prisma
+1. **Schema:** Chỉ edit `prisma/schema.prisma`
+2. **Migrations:** Luôn tạo migration khi thay đổi schema: `yarn prisma:migrate`
+3. **Access:** Chỉ access Prisma qua Repositories
+4. **Entities:** Luôn convert Prisma objects sang Domain Entities
+
+### Naming Convention
+- Table names: `snake_case` (users, refresh_tokens)
+- Column names: `snake_case` (first_name, created_at)
+- Model names: `PascalCase` (User, RefreshToken)
+- Enum names: `PascalCase` (UserRole, UserStatus)
+
+---
+
+## 🔄 Migration Path sang NestJS
+
+**Code được thiết kế để migrate dễ dàng:**
+
+### Next.js → NestJS Mapping
+- `Service class` → Thêm `@Injectable()` decorator
+- `Repository class` → Thêm `@Injectable()` decorator
+- `API route` → Convert sang `@Controller()` với decorators
+- `Entity` → Giữ nguyên hoặc convert sang TypeORM
+- `DTOs` → Giữ nguyên hoặc thêm class-validator decorators
+- `@swagger` comments → Convert sang `@Api*()` decorators
+
+### Nguyên tắc Migration-Ready
+- ✅ Business logic KHÔNG phụ thuộc vào Next.js
+- ✅ Services là pure TypeScript
+- ✅ Repositories implement interfaces
+- ✅ DTOs và Types trong shared folder
+- ✅ Dependency injection pattern
+
+---
+
+## 🎨 Code Style & Best Practices
+
+### Import Order
+```typescript
+// 1. External packages
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+// 2. Internal modules (@/server/*)
+import { UserService } from '@/server/modules/users/application/user.service';
+
+// 3. Shared code (@/shared/*)
+import { CreateUserDto } from '@/shared/dtos';
+
+// 4. Utils & helpers
+import { successResponse, errorResponse } from '@/server/http/utils/response.helper';
+```
+
+### Naming Conventions
+- **Files:** `kebab-case.ts` (user.service.ts, auth.repository.ts)
+- **Classes:** `PascalCase` (UserService, AuthRepository)
+- **Functions:** `camelCase` (getUserById, createUser)
+- **Constants:** `UPPER_SNAKE_CASE` (JWT_SECRET, MAX_ATTEMPTS)
+- **Types/Interfaces:** `PascalCase` (User, CreateUserDto)
+
+### TypeScript
+- ✅ LUÔN dùng strict mode
+- ✅ LUÔN define return types cho functions
+- ✅ LUÔN dùng explicit types, tránh `any`
+- ✅ Prefer `interface` cho object shapes, `type` cho unions
+
+---
+
+## 🚫 KHÔNG BAO GIỜ
+
+1. **KHÔNG** import `next/*` trong `src/server/modules/`
+2. **KHÔNG** viết business logic trong API routes
+3. **KHÔNG** access database trực tiếp ngoài repositories
+4. **KHÔNG** return raw Prisma objects (luôn convert sang Entities)
+5. **KHÔNG** commit file `.env` (chỉ `.env.example`)
+6. **KHÔNG** skip validation (luôn validate với Zod)
+7. **KHÔNG** skip Swagger documentation
+8. **KHÔNG** tạo global singletons (dùng dependency injection)
+
+---
+
+## ✅ LUÔN LUÔN
+
+1. **LUÔN** tách business logic vào services
+2. **LUÔN** validate input với Zod schemas
+3. **LUÔN** sử dụng custom exceptions
+4. **LUÔN** return Domain Entities từ repositories
+5. **LUÔN** document endpoints với `@swagger`
+6. **LUÔN** sử dụng response helpers (`successResponse`, `errorResponse`)
+7. **LUÔN** implement repository interface
+8. **LUÔN** giữ code framework-agnostic trong `server/modules/`
+9. **LUÔN** test business logic độc lập với HTTP layer
+
+---
+
+## 📦 Dependencies
+
+### Core Stack
+- **Framework:** Next.js 14+ (App Router)
+- **Database:** PostgreSQL + Prisma ORM
+- **Auth:** Firebase Admin SDK + JWT
+- **Validation:** Zod
+- **Documentation:** Swagger/OpenAPI (swagger-jsdoc)
+
+### Development
+- **TypeScript:** Strict mode enabled
+- **Linting:** ESLint với Next.js config
+- **Type Checking:** `yarn type-check`
+
+---
+
+## 🧪 Testing Strategy
+
+Khi viết tests:
+- **Unit Tests:** Test services và entities độc lập
+- **Integration Tests:** Test repositories với test database
+- **E2E Tests:** Test API routes với real dependencies
+- Mock dependencies sử dụng interfaces
+
+---
+
+## 🔧 Environment Variables
+
+Luôn define trong `.env`:
+```bash
+# Database
+DATABASE_URL="postgresql://..."
+
+# JWT
+JWT_SECRET="your-secret"
+JWT_ACCESS_EXPIRATION="15m"
+JWT_REFRESH_EXPIRATION="7d"
+
+# Firebase
+FIREBASE_PROJECT_ID="..."
+FIREBASE_PRIVATE_KEY="..."
+FIREBASE_CLIENT_EMAIL="..."
+
+# Optional Services
+SENDGRID_API_KEY="..."
+TWILIO_ACCOUNT_SID="..."
+```
+
+---
+
+## 📚 Tham khảo
+
+Xem thêm trong các file:
+- `ARCHITECTURE.md` - Chi tiết kiến trúc
+- `MIGRATION_GUIDE.md` - Hướng dẫn migrate sang NestJS
+- `SWAGGER_SETUP_SUCCESS.md` - Setup Swagger
+- `LOCAL_SETUP_SUCCESS.md` - Local development setup
+
+---
+
+## 🎯 Mục tiêu Chính
+
+1. **Tách biệt concerns:** HTTP ≠ Business Logic ≠ Data Access
+2. **Framework-agnostic:** Business logic không phụ thuộc Next.js
+3. **Migration-ready:** Dễ dàng migrate sang NestJS
+4. **Clean Architecture:** Dependency flow đúng hướng
+5. **Type Safety:** Strong typing với TypeScript
+6. **Documentation:** Self-documenting với Swagger
+
+---
+
+**Nhớ:** Code được viết hôm nay phải dễ dàng migrate sang NestJS ngày mai!
+
