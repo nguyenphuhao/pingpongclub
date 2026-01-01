@@ -26,7 +26,7 @@
     "clean:all": "rm -rf .expo node_modules android ios yarn.lock && yarn install"
   },
   "dependencies": {
-    "@dokifree/mobile-ui": "*",
+    "@pingclub/mobile-ui": "*",
     "@expo/metro-runtime": "^6.1.2",
     "@react-navigation/native": "^7.0.0",
     "@rn-primitives/accordion": "^1.2.0",

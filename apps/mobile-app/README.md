@@ -1,8 +1,8 @@
 # Mobile App
 
-Cross-platform mobile application for Dokifree built with React Native and Expo.
+Cross-platform mobile application for Pingclub built with React Native and Expo.
 
-> **Part of Dokifree Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
+> **Part of Pingclub Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
 
 ## 🚀 Tech Stack
 
@@ -11,7 +11,7 @@ Cross-platform mobile application for Dokifree built with React Native and Expo.
 - **Navigation:** Expo Router (file-based)
 - **UI Components:** RN Primitives
 - **Styling:** NativeWind (Tailwind for React Native)
-- **Design System:** @dokifree/mobile-ui
+- **Design System:** @pingclub/mobile-ui
 - **Language:** TypeScript
 
 ## 📱 Multi-Environment Setup
@@ -19,20 +19,20 @@ Cross-platform mobile application for Dokifree built with React Native and Expo.
 The app supports **2 environments** that can be installed side-by-side on the same device:
 
 ### Staging Environment
-- **App Name:** DOKIFREE (Staging)
-- **iOS Bundle ID:** `com.dokifreeapp.staging`
-- **Android Package:** `com.dokifreeapp.staging`
+- **App Name:** PINGCLUB (Staging)
+- **iOS Bundle ID:** `com.pingclubapp.staging`
+- **Android Package:** `com.pingclubapp.staging`
 - **Icon:** Yellow badge
-- **API URL:** `https://api-staging.dokifree.com`
+- **API URL:** `https://api-staging.pingclub.com`
 - **Debug:** Enabled
 - **Analytics:** Disabled
 
 ### Production Environment
-- **App Name:** DOKIFREE
-- **iOS Bundle ID:** `com.dokifreeapp.prod`
-- **Android Package:** `com.dokifreeapp.prod`
+- **App Name:** PINGCLUB
+- **iOS Bundle ID:** `com.pingclubapp.prod`
+- **Android Package:** `com.pingclubapp.prod`
 - **Icon:** Standard icon
-- **API URL:** `https://api.dokifree.com`
+- **API URL:** `https://api.pingclub.com`
 - **Debug:** Disabled
 - **Analytics:** Enabled
 
@@ -50,7 +50,7 @@ The app supports **2 environments** that can be installed side-by-side on the sa
 
 ```bash
 # From monorepo root
-cd /Users/hipages/Projects/dokifree
+cd /Users/hipages/Projects/pingclub
 yarn install
 ```
 
@@ -138,10 +138,10 @@ apps/mobile-app/
 
 ## 🎨 Design System
 
-Uses shared design tokens from `@dokifree/mobile-ui`:
+Uses shared design tokens from `@pingclub/mobile-ui`:
 
 ```typescript
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 
 // In React Native
 <View style={{ backgroundColor: COLORS.primary.main }}>
@@ -160,7 +160,7 @@ import { COLORS } from '@dokifree/mobile-ui/tokens';
 - **Spacing:** 8px grid system
 - **Border Radius:** sm, md, lg, xl, full
 
-See [@dokifree/mobile-ui](../../packages/mobile-ui/README.md) for details.
+See [@pingclub/mobile-ui](../../packages/mobile-ui/README.md) for details.
 
 ## ⚙️ Environment Configuration
 
@@ -172,23 +172,23 @@ Auto-switches config based on `APP_ENV` environment variable:
 const IS_STAGING = process.env.APP_ENV === 'staging';
 
 export default {
-  name: IS_STAGING ? 'DOKIFREE (Staging)' : 'DOKIFREE',
-  slug: IS_STAGING ? 'dokifree-staging' : 'dokifree-prod',
+  name: IS_STAGING ? 'PINGCLUB (Staging)' : 'PINGCLUB',
+  slug: IS_STAGING ? 'pingclub-staging' : 'pingclub-prod',
   ios: {
     bundleIdentifier: IS_STAGING 
-      ? 'com.dokifreeapp.staging' 
-      : 'com.dokifreeapp.prod',
+      ? 'com.pingclubapp.staging' 
+      : 'com.pingclubapp.prod',
   },
   android: {
     package: IS_STAGING 
-      ? 'com.dokifreeapp.staging' 
-      : 'com.dokifreeapp.prod',
+      ? 'com.pingclubapp.staging' 
+      : 'com.pingclubapp.prod',
   },
   extra: {
     environment: IS_STAGING ? 'staging' : 'production',
     apiUrl: IS_STAGING 
-      ? 'https://api-staging.dokifree.com' 
-      : 'https://api.dokifree.com',
+      ? 'https://api-staging.pingclub.com' 
+      : 'https://api.pingclub.com',
   },
 };
 ```
@@ -213,7 +213,7 @@ In `app.config.js`, add to `extra`:
 ```javascript
 extra: {
   environment: IS_STAGING ? 'staging' : 'production',
-  apiUrl: IS_STAGING ? 'https://api-staging.dokifree.com' : 'https://api.dokifree.com',
+  apiUrl: IS_STAGING ? 'https://api-staging.pingclub.com' : 'https://api.pingclub.com',
   // Add new config here
   googleMapsApiKey: IS_STAGING ? 'STAGING_KEY' : 'PRODUCTION_KEY',
   sentryDsn: IS_STAGING ? 'STAGING_DSN' : 'PRODUCTION_DSN',
@@ -348,7 +348,7 @@ npx react-native-reusables/cli@latest add card
 ### Using Design System
 
 ```tsx
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 import { View, Text } from 'react-native';
 
 // Direct styling
@@ -461,7 +461,7 @@ eas build --profile production --platform all
 yarn prebuild:prod
 cd ios
 pod install
-open DOKIFREEProduction.xcworkspace
+open PINGCLUBProduction.xcworkspace
 
 # Android
 yarn prebuild:prod
@@ -488,7 +488,7 @@ cd android
 
 ## 🔗 Related Packages
 
-- `@dokifree/mobile-ui` - Mobile design system
+- `@pingclub/mobile-ui` - Mobile design system
 
 ## 📱 Features
 
@@ -503,6 +503,6 @@ cd android
 
 ---
 
-**Staging Bundle ID:** com.dokifreeapp.staging  
-**Production Bundle ID:** com.dokifreeapp.prod  
-**Design System:** @dokifree/mobile-ui
+**Staging Bundle ID:** com.pingclubapp.staging  
+**Production Bundle ID:** com.pingclubapp.prod  
+**Design System:** @pingclub/mobile-ui

@@ -1,4 +1,4 @@
-import { prisma, AdminRole, AdminStatus } from '@dokifree/database';
+import { prisma, AdminRole, AdminStatus } from '@pingclub/database';
 import { verifyPassword } from '../utils/password';
 
 export interface AdminUser {

@@ -4,18 +4,18 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: dokifree-postgres
+    container_name: pingclub-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: dokifree
-      POSTGRES_PASSWORD: dokifree_password
-      POSTGRES_DB: dokifree
+      POSTGRES_USER: pingclub
+      POSTGRES_PASSWORD: pingclub_password
+      POSTGRES_DB: pingclub
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U dokifree']
+      test: ['CMD-SHELL', 'pg_isready -U pingclub']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
   # Redis (for queue/cache - optional but recommended)
   redis:
     image: redis:7-alpine
-    container_name: dokifree-redis
+    container_name: pingclub-redis
     restart: unless-stopped
     ports:
       - '6379:6379'
@@ -39,10 +39,10 @@ services:
   # pgAdmin (PostgreSQL GUI - optional)
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: dokifree-pgadmin
+    container_name: pingclub-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@dokifree.local
+      PGADMIN_DEFAULT_EMAIL: admin@pingclub.local
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_LISTEN_PORT: 80
     ports:
@@ -55,7 +55,7 @@ services:
   # Mock Notification Server (Email & SMS - for local development)
   mock-server:
     image: node:20-alpine
-    container_name: dokifree-mock-server
+    container_name: pingclub-mock-server
     restart: unless-stopped
     working_dir: /app
     command: sh -c "yarn install && yarn mock:server"

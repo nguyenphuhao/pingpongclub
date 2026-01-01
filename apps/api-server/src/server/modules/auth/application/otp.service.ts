@@ -1,4 +1,4 @@
-import { prisma } from '@dokifree/database';
+import { prisma } from '@pingclub/database';
 import { 
   createEmailProvider, 
   createSmsProvider 

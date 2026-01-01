@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Text } from '@/components/ui/text';
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 
 const { width, height } = Dimensions.get('window');
 

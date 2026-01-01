@@ -36,7 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserRole, UserStatus } from '@dokifree/database';
+import { UserRole, UserStatus } from '@pingclub/database';
 import { createUser, updateUserStatus, deleteUser, getUsers } from './actions';
 import { useRouter, useSearchParams } from 'next/navigation';
 

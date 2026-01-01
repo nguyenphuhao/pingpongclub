@@ -1,6 +1,6 @@
-# Dokifree Documentation
+# Pingclub Documentation
 
-> Comprehensive documentation for Dokifree platform capabilities and technical architecture
+> Comprehensive documentation for Pingclub platform capabilities and technical architecture
 
 ## 📚 Documentation Structure
 
@@ -139,5 +139,5 @@ When adding documentation:
 ---
 
 **Last Updated**: December 2025
-**Maintainers**: Dokifree Development Team
+**Maintainers**: Pingclub Development Team
 

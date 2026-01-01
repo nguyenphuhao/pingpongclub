@@ -44,7 +44,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserRole, UserStatus, DevicePlatform, LoginMethod, LoginStatus } from '@dokifree/database';
+import { UserRole, UserStatus, DevicePlatform, LoginMethod, LoginStatus } from '@pingclub/database';
 import { updateUserStatus, deleteUser, updateUser, forceLogoutSession, forceLogoutAllSessions } from '../actions';
 import { LogOut } from 'lucide-react';
 

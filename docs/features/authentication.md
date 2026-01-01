@@ -2,7 +2,7 @@
 
 ## Overview
 
-Dokifree supports multiple authentication methods to provide flexibility and security for different use cases.
+Pingclub supports multiple authentication methods to provide flexibility and security for different use cases.
 
 ## 🔐 Supported Authentication Methods
 
@@ -359,12 +359,12 @@ Login:
 
 ### Shared Packages
 
-**@dokifree/auth:**
+**@pingclub/auth:**
 - Password hashing utilities
 - Admin authentication
 - Shared auth types
 
-**@dokifree/database:**
+**@pingclub/database:**
 - User model
 - RefreshToken model
 - OtpVerification model

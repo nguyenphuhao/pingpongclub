@@ -1,4 +1,4 @@
-import { prisma } from '@dokifree/database';
+import { prisma } from '@pingclub/database';
 import { nanoid } from 'nanoid';
 import { DevicePlatform } from '@/shared/types';
 

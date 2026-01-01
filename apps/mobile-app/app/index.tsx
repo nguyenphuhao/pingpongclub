@@ -17,7 +17,7 @@ const LOGO = {
 };
 
 const SCREEN_OPTIONS = {
-  title: 'Dokifree App',
+  title: 'Pingclub App',
   headerTransparent: true,
   headerRight: () => <ThemeToggle />,
 };
@@ -44,7 +44,7 @@ export default function Screen() {
           <Image source={require('@/assets/images/splash.png')} style={IMAGE_STYLE} resizeMode="contain" />
           
           <View className="items-center gap-2">
-            <Text className="text-3xl font-bold text-foreground">Dokifree App</Text>
+            <Text className="text-3xl font-bold text-foreground">Pingclub App</Text>
             <Text className="text-sm text-muted-foreground text-center">
               Built with Design System & React Native Reusables
             </Text>

@@ -1,13 +1,26 @@
 {
-  "name": "@dokifree/auth",
+  "name": "@pingclub/auth",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "source": "./src/index.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./admin": "./dist/admin/index.js",
-    "./user": "./dist/user/index.js",
-    "./utils": "./dist/utils/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin/index.d.ts",
+      "default": "./dist/admin/index.js"
+    },
+    "./user": {
+      "types": "./dist/user/index.d.ts",
+      "default": "./dist/user/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
+    }
   },
   "scripts": {
     "build": "tsc",
@@ -15,7 +28,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dokifree/database": "*",
+    "@pingclub/database": "*",
     "bcryptjs": "^2.4.3"
   },
   "devDependencies": {

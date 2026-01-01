@@ -1,15 +1,15 @@
 # Admin Portal
 
-Admin web application for managing Dokifree platform.
+Admin web application for managing Pingclub platform.
 
-> **Part of Dokifree Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
+> **Part of Pingclub Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
 
 ## 🚀 Tech Stack
 
 - **Framework:** Next.js 14 (App Router)
 - **Database:** PostgreSQL + Prisma ORM
 - **UI:** shadcn/ui + Tailwind CSS
-- **Design System:** @dokifree/web-ui
+- **Design System:** @pingclub/web-ui
 - **Authentication:** Admin session management
 - **Package Manager:** Yarn Workspaces
 
@@ -39,7 +39,7 @@ apps/admin-portal/
 
 ```bash
 # From monorepo root
-cd /Users/hipages/Projects/dokifree
+cd /Users/hipages/Projects/pingclub
 yarn install
 ```
 
@@ -49,7 +49,7 @@ yarn install
 # Create .env.local
 cat > apps/admin-portal/.env.local << EOF
 # Database (same as api-server)
-DATABASE_URL="postgresql://user:password@localhost:5432/dokifree"
+DATABASE_URL="postgresql://user:password@localhost:5432/pingclub"
 
 # API Server
 NEXT_PUBLIC_API_URL="http://localhost:3000"
@@ -81,7 +81,7 @@ The app will be available at `http://localhost:8080`
 
 ## 🎨 Design System
 
-Uses shared design tokens from `@dokifree/web-ui`:
+Uses shared design tokens from `@pingclub/web-ui`:
 
 - **Primary Color:** Purple (#7C5CDB)
 - **Secondary Color:** Orange (#FF8F2E)
@@ -89,7 +89,7 @@ Uses shared design tokens from `@dokifree/web-ui`:
 - **Spacing:** 8px base unit grid system
 
 ```typescript
-import { COLORS } from '@dokifree/web-ui/tokens';
+import { COLORS } from '@pingclub/web-ui/tokens';
 ```
 
 ## 📦 Available Scripts
@@ -119,7 +119,7 @@ Admin authentication uses:
 
 ```typescript
 // Check admin credentials
-import { verifyAdminCredentials } from '@dokifree/auth/admin';
+import { verifyAdminCredentials } from '@pingclub/auth/admin';
 
 const admin = await verifyAdminCredentials(username, password);
 ```
@@ -239,13 +239,13 @@ npx shadcn-ui@latest add dialog
 
 ```typescript
 // Database access
-import { prisma, User, UserRole } from '@dokifree/database';
+import { prisma, User, UserRole } from '@pingclub/database';
 
 // Auth utilities
-import { verifyAdminCredentials } from '@dokifree/auth/admin';
+import { verifyAdminCredentials } from '@pingclub/auth/admin';
 
 // Design tokens
-import { COLORS } from '@dokifree/web-ui/tokens';
+import { COLORS } from '@pingclub/web-ui/tokens';
 ```
 
 ## 🐛 Troubleshooting
@@ -285,9 +285,9 @@ PORT=8081 yarn dev
 
 ## 🔗 Related Packages
 
-- `@dokifree/database` - Shared Prisma client
-- `@dokifree/auth` - Authentication utilities
-- `@dokifree/web-ui` - Web design system
+- `@pingclub/database` - Shared Prisma client
+- `@pingclub/auth` - Authentication utilities
+- `@pingclub/web-ui` - Web design system
 
 ---
 

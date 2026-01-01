@@ -1,5 +1,5 @@
 {
-  "name": "dokifree-monorepo",
+  "name": "pingclub-monorepo",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -20,10 +20,10 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     
-    "db:generate": "yarn workspace @dokifree/database prisma:generate",
-    "db:migrate": "yarn workspace @dokifree/database prisma:migrate",
-    "db:studio": "yarn workspace @dokifree/database prisma:studio",
-    "db:seed": "yarn workspace @dokifree/database prisma:seed",
+    "db:generate": "yarn workspace @pingclub/database prisma:generate",
+    "db:migrate": "yarn workspace @pingclub/database prisma:migrate",
+    "db:studio": "yarn workspace @pingclub/database prisma:studio",
+    "db:seed": "yarn workspace @pingclub/database prisma:seed",
     
     "clean": "turbo run clean && rm -rf node_modules"
   },

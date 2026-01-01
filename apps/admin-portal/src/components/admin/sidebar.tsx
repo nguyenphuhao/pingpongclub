@@ -6,15 +6,37 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
+  Shield,
   Users,
 } from 'lucide-react';
 
 const menuItems = [
   {
-    title: 'Main',
+    title: 'Dashboard',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Users', href: '/users', icon: Users },
+      { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { 
+        label: 'User Accounts',
+        href: '/users', 
+        icon: Shield,
+        badge: '🔐',
+      },
+    ],
+  },
+  {
+    title: 'Club',
+    items: [
+      { 
+        label: 'Members',
+        href: '/members', 
+        icon: Users,
+        badge: '🏸',
+      },
     ],
   },
 ];
@@ -27,12 +49,12 @@ export function Sidebar() {
       <div className="flex flex-col items-center justify-center border-b px-6 py-4">
         <Image
           src="/icon.png"
-          alt="Dokifree Logo"
+          alt="Pingclub Logo"
           width={40}
           height={40}
           className="mb-2"
         />
-        <h2 className="text-sm font-semibold">DOKIFREE Admin</h2>
+        <h2 className="text-sm font-semibold">PINGCLUB Admin</h2>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {menuItems.map((section) => (
@@ -42,7 +64,7 @@ export function Sidebar() {
             </div>
             {section.items.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.href}
@@ -56,6 +78,9 @@ export function Sidebar() {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1">{item.label}</span>
+                  {item.badge && (
+                    <span className="text-xs">{item.badge}</span>
+                  )}
                 </Link>
               );
             })}

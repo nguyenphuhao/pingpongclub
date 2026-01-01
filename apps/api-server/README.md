@@ -1,8 +1,8 @@
 # API Server
 
-Backend API server for Dokifree platform built with Next.js, designed for easy migration to NestJS.
+Backend API server for Pingclub platform built with Next.js, designed for easy migration to NestJS.
 
-> **Part of Dokifree Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
+> **Part of Pingclub Monorepo** - See [Monorepo Documentation](../../docs/README.md) for overall architecture.
 
 ## 🏗️ Architecture
 
@@ -64,7 +64,7 @@ Each module in `src/server/modules/` is designed to map 1:1 with NestJS:
 
 ```bash
 # From monorepo root
-cd /Users/hipages/Projects/dokifree
+cd /Users/hipages/Projects/pingclub
 yarn install
 ```
 
@@ -74,7 +74,7 @@ yarn install
 # Create .env file
 cat > apps/api-server/.env << EOF
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/dokifree"
+DATABASE_URL="postgresql://user:password@localhost:5432/pingclub"
 
 # JWT
 JWT_SECRET="your-jwt-secret-key-here"
@@ -87,7 +87,7 @@ FIREBASE_CLIENT_EMAIL="firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.
 
 # Email (SendGrid)
 SENDGRID_API_KEY="SG.xxxxx"
-SENDGRID_FROM_EMAIL="noreply@dokifree.com"
+SENDGRID_FROM_EMAIL="noreply@pingclub.com"
 
 # SMS (Twilio)
 TWILIO_ACCOUNT_SID="ACxxxxx"
@@ -327,7 +327,7 @@ touch src/app/api/orders/route.ts
 ### Adding New Prisma Model
 
 ```prisma
-// In @dokifree/database package
+// In @pingclub/database package
 model Order {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
@@ -397,7 +397,7 @@ yarn test:cov
 
 **Regular User:**
 ```
-Email: test@dokifree.com
+Email: test@pingclub.com
 Password: Test123456
 ```
 
@@ -446,8 +446,8 @@ PORT=3001 yarn dev
 
 ## 🔗 Related Packages
 
-- `@dokifree/database` - Shared Prisma client and models
-- `@dokifree/auth` - Authentication utilities
+- `@pingclub/database` - Shared Prisma client and models
+- `@pingclub/auth` - Authentication utilities
 
 ---
 

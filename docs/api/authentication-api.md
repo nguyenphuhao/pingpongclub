@@ -4,7 +4,7 @@
 
 ```
 Development: http://localhost:3000
-Production: https://api.dokifree.com
+Production: https://api.pingclub.com
 ```
 
 ## 🔐 Authentication Endpoints
@@ -450,7 +450,7 @@ Admin authentication (separate from user auth).
   "admin": {
     "id": "admin-id",
     "username": "admin",
-    "email": "admin@dokifree.com",
+    "email": "admin@pingclub.com",
     "role": "ADMIN"
   },
   "accessToken": "jwt-token"
@@ -568,7 +568,7 @@ curl -X GET http://localhost:3000/api/auth/me \
 
 **Development Only:**
 ```
-Email: test@dokifree.com
+Email: test@pingclub.com
 Password: Test123456
 ```
 

@@ -1,84 +1,67 @@
-import { prisma, AdminRole, AdminStatus } from '@dokifree/database';
-import { verifyPassword } from '@dokifree/auth';
+import { adminAuthApi } from './api-client';
 
 export interface AdminUser {
   id: string;
   username: string;
   email: string | null;
-  role: AdminRole;
+  role: string;
   firstName: string | null;
   lastName: string | null;
 }
 
 /**
  * Verify admin credentials using username and password
+ * Now calls API instead of accessing DB directly
  */
 export async function verifyAdminCredentials(
   username: string,
   password: string
 ): Promise<AdminUser | null> {
-  // Find admin by username
-  const admin = await prisma.admin.findFirst({
-    where: {
-      username,
-      status: AdminStatus.ACTIVE,
-      deletedAt: null,
-    },
-  });
-
-  if (!admin) return null;
-
-  // Verify password
-  const isValidPassword = await verifyPassword(password, admin.password);
-  if (!isValidPassword) return null;
-
-  // Update last login
-  await prisma.admin.update({
-    where: { id: admin.id },
-    data: { lastLoginAt: new Date() },
-  });
-
-  return {
-    id: admin.id,
-    username: admin.username,
-    email: admin.email,
-    role: admin.role,
-    firstName: admin.firstName,
-    lastName: admin.lastName,
-  };
+  try {
+    const result = await adminAuthApi.login(username, password);
+    return result?.admin || null;
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
  * Check if admin user exists and is active
+ * Now calls API instead of accessing DB directly
  */
 export async function isAdmin(adminId: string): Promise<boolean> {
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    select: { status: true, deletedAt: true },
-  });
-  
-  return admin?.status === AdminStatus.ACTIVE && admin.deletedAt === null;
+  try {
+    const admin = await adminAuthApi.getCurrentAdmin();
+    return admin !== null && admin.id === adminId;
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
  * Get admin user by ID
+ * Now calls API instead of accessing DB directly
  */
 export async function getAdminUser(adminId: string): Promise<AdminUser | null> {
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-  });
-
-  if (!admin || admin.status !== AdminStatus.ACTIVE || admin.deletedAt !== null) {
+  try {
+    const admin = await adminAuthApi.getCurrentAdmin();
+    if (!admin || admin.id !== adminId) {
+      return null;
+    }
+    return admin;
+  } catch (error) {
     return null;
   }
+}
 
-  return {
-    id: admin.id,
-    username: admin.username,
-    email: admin.email,
-    role: admin.role,
-    firstName: admin.firstName,
-    lastName: admin.lastName,
-  };
+/**
+ * Get current admin user from API
+ */
+export async function getCurrentAdmin(): Promise<AdminUser | null> {
+  try {
+    return await adminAuthApi.getCurrentAdmin();
+  } catch (error) {
+    return null;
+  }
 }
 

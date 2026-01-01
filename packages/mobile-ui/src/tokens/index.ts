@@ -1,6 +1,6 @@
 /**
  * Design Tokens - UI Style Guidelines
- * Based on the Dokifree App Design System
+ * Based on the Pingclub App Design System
  */
 
 export const COLORS = {

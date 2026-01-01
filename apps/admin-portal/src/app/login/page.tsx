@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { adminAuthApi } from '@/lib/api-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,10 +21,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Call admin-portal API route which will set cookie server-side
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
+        credentials: 'include', // Important: include cookies
       });
 
       const data = await response.json();
@@ -33,10 +36,18 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to dashboard
-      router.push('/dashboard');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+      // Store token in localStorage for client-side API calls
+      // Cookie is already set by API route for server-side access
+      if (data.accessToken) {
+        localStorage.setItem('admin_token', data.accessToken);
+      }
+
+      // Use window.location.href for full page reload to ensure cookie is read
+      // This ensures Server Components can read the cookie properly
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -46,7 +57,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Dokifree Admin</CardTitle>
+          <CardTitle className="text-2xl font-bold">Pingclub Admin</CardTitle>
           <CardDescription>Enter your credentials to access the admin dashboard</CardDescription>
         </CardHeader>
         <CardContent>

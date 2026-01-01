@@ -12,7 +12,7 @@ components:
         email:
           type: string
           format: email
-          example: "user@dokifree.com"
+          example: "user@pingclub.com"
         phone:
           type: string
           nullable: true
@@ -76,7 +76,7 @@ components:
         email:
           type: string
           format: email
-          example: "newuser@dokifree.com"
+          example: "newuser@pingclub.com"
         phone:
           type: string
           example: "+84912345678"

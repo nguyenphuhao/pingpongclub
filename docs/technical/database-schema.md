@@ -2,7 +2,7 @@
 
 ## Overview
 
-Dokifree uses **PostgreSQL** with **Prisma ORM** for type-safe database access.
+Pingclub uses **PostgreSQL** with **Prisma ORM** for type-safe database access.
 
 **Schema Location:** `packages/database/prisma/schema.prisma`
 
@@ -465,7 +465,7 @@ const user = await prisma.user.create({
 yarn db:migrate
 
 # Apply migrations
-yarn workspace @dokifree/database prisma:migrate
+yarn workspace @pingclub/database prisma:migrate
 ```
 
 ### Migration Strategy

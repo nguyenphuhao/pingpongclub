@@ -1,4 +1,4 @@
-import { prisma } from '@dokifree/database';
+import { prisma } from '@pingclub/database';
 import { IRepository } from '@/server/common/interfaces/repository.interface';
 import { PaginationParams, PaginatedResponse, UserRole, UserStatus } from '@/shared/types';
 import { UserEntity } from '../domain/user.entity';

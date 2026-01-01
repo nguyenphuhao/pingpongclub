@@ -2,11 +2,11 @@
 
 ## System Architecture
 
-Dokifree is built as a **monorepo** containing multiple applications and shared packages, following modern software architecture principles.
+Pingclub is built as a **monorepo** containing multiple applications and shared packages, following modern software architecture principles.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Dokifree Platform                         │
+│                    Pingclub Platform                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
@@ -18,7 +18,7 @@ Dokifree is built as a **monorepo** containing multiple applications and shared 
 │         └──────────────────┴──────────────────┘              │
 │                            │                                  │
 │         ┌──────────────────▼──────────────────┐             │
-│         │      Shared Packages (@dokifree/*)   │             │
+│         │      Shared Packages (@pingclub/*)   │             │
 │         ├───────────────────────────────────────┤             │
 │         │  database  │  auth  │ web-ui │mobile-ui│          │
 │         └──────────────────┬──────────────────┘             │
@@ -100,10 +100,10 @@ Each module contains:
 **Workspace Packages**
 
 ```typescript
-@dokifree/database    // Prisma client & types
-@dokifree/auth        // Auth utilities
-@dokifree/web-ui      // Web design tokens
-@dokifree/mobile-ui   // Mobile design tokens
+@pingclub/database    // Prisma client & types
+@pingclub/auth        // Auth utilities
+@pingclub/web-ui      // Web design tokens
+@pingclub/mobile-ui   // Mobile design tokens
 ```
 
 ---
@@ -336,7 +336,7 @@ yarn dev:api        # API server
 ```
 Turborepo
   ↓
-Build Packages (@dokifree/*)
+Build Packages (@pingclub/*)
   ↓
 Build Apps (admin-portal, mobile-app, api-server)
   ↓
@@ -372,24 +372,24 @@ Deploy to Production
 ```
 admin-portal
   ↓
-├─→ @dokifree/database
-├─→ @dokifree/auth
-└─→ @dokifree/web-ui
+├─→ @pingclub/database
+├─→ @pingclub/auth
+└─→ @pingclub/web-ui
 
 mobile-app
   ↓
-└─→ @dokifree/mobile-ui
+└─→ @pingclub/mobile-ui
 
 api-server
   ↓
-├─→ @dokifree/database
-└─→ @dokifree/auth
+├─→ @pingclub/database
+└─→ @pingclub/auth
 
-@dokifree/auth
+@pingclub/auth
   ↓
-└─→ @dokifree/database
+└─→ @pingclub/database
 
-@dokifree/database
+@pingclub/database
   ↓
 └─→ @prisma/client
 ```
@@ -400,7 +400,7 @@ api-server
 
 ### Web Design System
 
-**Package:** `@dokifree/web-ui`
+**Package:** `@pingclub/web-ui`
 
 **Exports:**
 - Design tokens (colors, typography, spacing)
@@ -412,7 +412,7 @@ api-server
 
 ### Mobile Design System
 
-**Package:** `@dokifree/mobile-ui`
+**Package:** `@pingclub/mobile-ui`
 
 **Exports:**
 - Design tokens (colors, typography, spacing)

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 
 interface ColorSwatchProps {
   color: string;

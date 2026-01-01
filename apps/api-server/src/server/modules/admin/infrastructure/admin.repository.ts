@@ -1,5 +1,5 @@
-import { prisma } from '@dokifree/database';
-import { AdminRole, AdminStatus } from '@dokifree/database';
+import { prisma } from '@pingclub/database';
+import { AdminRole, AdminStatus } from '@pingclub/database';
 
 /**
  * Admin Repository (Infrastructure Layer)

@@ -3,8 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Dokifree Admin",
-  description: "Admin dashboard for Dokifree application",
+  title: "Pingclub Admin",
+  description: "Admin dashboard for Pingclub application",
 };
 
 export default function RootLayout({

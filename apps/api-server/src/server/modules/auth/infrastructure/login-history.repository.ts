@@ -1,4 +1,4 @@
-import { prisma } from '@dokifree/database';
+import { prisma } from '@pingclub/database';
 import { LoginHistoryEntity, LoginMethod, LoginStatus } from '../domain/login-history.entity';
 import { DevicePlatform } from '@/shared/types';
 

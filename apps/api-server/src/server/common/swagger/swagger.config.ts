@@ -7,7 +7,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
  * 
  * // main.ts
  * const config = new DocumentBuilder()
- *   .setTitle('Dokifree API')
+ *   .setTitle('Pingclub API')
  *   .setDescription('API documentation')
  *   .setVersion('1.0')
  *   .addBearerAuth()
@@ -21,12 +21,12 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Dokifree API',
+      title: 'Pingclub API',
       version: '1.0.0',
-      description: 'API documentation for Dokifree backend',
+      description: 'API documentation for Pingclub backend',
       contact: {
-        name: 'Dokifree Team',
-        email: 'dev@dokifree.com',
+        name: 'Pingclub Team',
+        email: 'dev@pingclub.com',
       },
     },
     servers: [
@@ -35,7 +35,7 @@ const options: swaggerJsdoc.Options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.dokifree.com',
+        url: 'https://api.pingclub.com',
         description: 'Production server',
       },
     ],

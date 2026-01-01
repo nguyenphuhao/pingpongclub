@@ -1,5 +1,5 @@
 /**
- * @dokifree/auth
+ * @pingclub/auth
  * Shared authentication and authorization logic
  */
 

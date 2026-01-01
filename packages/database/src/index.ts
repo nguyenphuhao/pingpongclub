@@ -20,6 +20,9 @@ if (process.env.NODE_ENV !== 'production') {
 // Re-export all Prisma types
 export * from '@prisma/client';
 
+// Export rating utilities
+export * from './rating.utils';
+
 // Export default for convenience
 export default prisma;
 

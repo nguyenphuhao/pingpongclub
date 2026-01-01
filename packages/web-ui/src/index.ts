@@ -1,5 +1,5 @@
 /**
- * @dokifree/web-ui
+ * @pingclub/web-ui
  * Shared design system for web applications
  */
 

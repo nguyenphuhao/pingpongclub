@@ -1,6 +1,6 @@
 /**
  * Color utilities and helpers
- * Based on Dokifree Design System
+ * Based on Pingclub Design System
  */
 
 import { COLORS } from './index';

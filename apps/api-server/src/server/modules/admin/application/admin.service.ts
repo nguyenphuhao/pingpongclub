@@ -3,14 +3,14 @@ import { JwtService, jwtService } from '@/server/modules/auth/application/jwt.se
 import { userService } from '@/server/modules/users/application/user.service';
 import { loginHistoryService } from '@/server/modules/auth/application/login-history.service';
 import { authService } from '@/server/modules/auth/application/auth.service';
-import { verifyPassword } from '@dokifree/auth';
+import { verifyPassword } from '@pingclub/auth';
 import { 
   InvalidCredentialsException,
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
 } from '@/server/common/exceptions';
-import { AdminRole, AdminStatus } from '@dokifree/database';
+import { AdminRole, AdminStatus } from '@pingclub/database';
 import { UpdateUserStatusDto, UpdateUserRoleDto } from '@/shared/dtos';
 import { UserEntity } from '@/server/modules/users/domain/user.entity';
 

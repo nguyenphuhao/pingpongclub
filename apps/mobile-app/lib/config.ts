@@ -18,7 +18,7 @@ const extra = Constants.expoConfig?.extra || {};
 
 const ENV: AppConfig = {
   environment: (extra.environment as 'staging' | 'production') || 'production',
-  apiUrl: extra.apiUrl || 'https://api.dokifree.com',
+  apiUrl: extra.apiUrl || 'https://api.pingclub.com',
   enableDebugMode: extra.enableDebugMode || false,
   enableAnalytics: extra.enableAnalytics || false,
   isStaging: extra.environment === 'staging',
@@ -31,7 +31,7 @@ const ENV: AppConfig = {
  */
 export const logEnvironment = () => {
   console.log('=====================================');
-  console.log('🚀 DOKIFREE APP ENVIRONMENT');
+  console.log('🚀 PINGCLUB APP ENVIRONMENT');
   console.log('=====================================');
   console.log('Environment:', ENV.environment.toUpperCase());
   console.log('API URL:', ENV.apiUrl);

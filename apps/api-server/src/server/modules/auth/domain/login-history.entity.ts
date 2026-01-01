@@ -1,4 +1,4 @@
-import { LoginHistory as PrismaLoginHistory } from '@dokifree/database';
+import { LoginHistory as PrismaLoginHistory } from '@pingclub/database';
 import { DevicePlatform } from '@/shared/types';
 
 /**

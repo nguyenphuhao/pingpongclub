@@ -21,7 +21,12 @@
       "@/*": ["./src/*"],
       "@/server/*": ["./src/server/*"],
       "@/shared/*": ["./src/shared/*"],
-      "@/client/*": ["./src/client/*"]
+      "@/client/*": ["./src/client/*"],
+      "@pingclub/database": ["../../packages/database/src/index.ts"],
+      "@pingclub/auth": ["../../packages/auth/src/index.ts"],
+      "@pingclub/auth/admin": ["../../packages/auth/src/admin/index.ts"],
+      "@pingclub/auth/user": ["../../packages/auth/src/user/index.ts"],
+      "@pingclub/auth/utils": ["../../packages/auth/src/utils/index.ts"]
     },
     "target": "ES2020",
     "experimentalDecorators": true,
@@ -30,7 +35,14 @@
     "strictPropertyInitialization": false,
     "noImplicitAny": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/database/src/**/*.ts",
+    "../../packages/auth/src/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }
 

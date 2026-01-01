@@ -30,7 +30,7 @@ import {
   NotFoundException,
 } from '@/server/common/exceptions';
 import { UserRole, UserStatus } from '@/shared/types';
-import { hashPassword, verifyPassword } from '@dokifree/auth';
+import { hashPassword, verifyPassword } from '@pingclub/auth';
 
 /**
  * Auth Service (Application Layer)
@@ -438,7 +438,7 @@ export class AuthService {
           status: UserStatus.ACTIVE,
         }
       : {
-          email: `${identifier}@temp.dokifree.com`, // Temp email for phone-only users
+          email: `${identifier}@temp.pingclub.com`, // Temp email for phone-only users
           phone: identifier,
           phoneVerified: true, // Auto-verify since OTP verified
           provider: 'phone', // OTP registration

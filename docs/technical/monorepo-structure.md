@@ -3,17 +3,17 @@
 ## 📂 Directory Structure
 
 ```
-dokifree/
+pingclub/
 ├── apps/                        # Applications
 │   ├── admin-portal/           # Admin Dashboard (Next.js)
 │   ├── mobile-app/             # Mobile App (React Native)
 │   └── api-server/             # Backend API (Next.js)
 │
 ├── packages/                    # Shared packages
-│   ├── database/               # @dokifree/database
-│   ├── auth/                   # @dokifree/auth
-│   ├── web-ui/                 # @dokifree/web-ui
-│   └── mobile-ui/              # @dokifree/mobile-ui
+│   ├── database/               # @pingclub/database
+│   ├── auth/                   # @pingclub/auth
+│   ├── web-ui/                 # @pingclub/web-ui
+│   └── mobile-ui/              # @pingclub/mobile-ui
 │
 ├── docs/                       # Documentation
 ├── package.json                # Root package.json
@@ -38,16 +38,16 @@ dokifree/
 
 | Package | Name | Description |
 |---------|------|-------------|
-| `database` | `@dokifree/database` | Prisma client & types |
-| `auth` | `@dokifree/auth` | Auth utilities |
-| `web-ui` | `@dokifree/web-ui` | Web design tokens |
-| `mobile-ui` | `@dokifree/mobile-ui` | Mobile design tokens |
+| `database` | `@pingclub/database` | Prisma client & types |
+| `auth` | `@pingclub/auth` | Auth utilities |
+| `web-ui` | `@pingclub/web-ui` | Web design tokens |
+| `mobile-ui` | `@pingclub/mobile-ui` | Mobile design tokens |
 
 ---
 
 ## 📦 Package Details
 
-### @dokifree/database
+### @pingclub/database
 
 **Purpose:** Centralized database access and type definitions
 
@@ -67,18 +67,18 @@ packages/database/
 
 **Exports:**
 ```typescript
-export { prisma } from '@dokifree/database';
+export { prisma } from '@pingclub/database';
 export * from '@prisma/client';  // All Prisma types
 ```
 
 **Usage:**
 ```typescript
-import { prisma, User, UserRole } from '@dokifree/database';
+import { prisma, User, UserRole } from '@pingclub/database';
 ```
 
 ---
 
-### @dokifree/auth
+### @pingclub/auth
 
 **Purpose:** Shared authentication utilities
 
@@ -108,12 +108,12 @@ export { hashPassword, verifyPassword, isValidHash };
 ```
 
 **Dependencies:**
-- `@dokifree/database` - Database access
+- `@pingclub/database` - Database access
 - `bcryptjs` - Password hashing
 
 ---
 
-### @dokifree/web-ui
+### @pingclub/web-ui
 
 **Purpose:** Web design system and tokens
 
@@ -141,7 +141,7 @@ export { ColorUtils, StatusColors };
 
 ---
 
-### @dokifree/mobile-ui
+### @pingclub/mobile-ui
 
 **Purpose:** Mobile design system and tokens
 
@@ -187,8 +187,8 @@ apps/admin-portal/
 │   │   └── ui/                # shadcn/ui components
 │   └── lib/
 │       ├── api-client-v2.ts   # API client
-│       ├── auth.ts            # (deprecated - use @dokifree/auth)
-│       └── prisma.ts          # (deprecated - use @dokifree/database)
+│       ├── auth.ts            # (deprecated - use @pingclub/auth)
+│       └── prisma.ts          # (deprecated - use @pingclub/database)
 ├── public/
 ├── package.json
 ├── next.config.mjs
@@ -197,9 +197,9 @@ apps/admin-portal/
 ```
 
 **Key Dependencies:**
-- `@dokifree/database`
-- `@dokifree/auth`
-- `@dokifree/web-ui`
+- `@pingclub/database`
+- `@pingclub/auth`
+- `@pingclub/web-ui`
 - `next`, `react`, `react-dom`
 - Radix UI components
 - `react-hook-form`, `zod`
@@ -220,8 +220,8 @@ apps/mobile-app/
 │   └── ColorPalette.tsx
 ├── lib/
 │   ├── config.ts
-│   ├── design-tokens.ts       # (deprecated - use @dokifree/mobile-ui)
-│   └── colors.ts              # (deprecated - use @dokifree/mobile-ui)
+│   ├── design-tokens.ts       # (deprecated - use @pingclub/mobile-ui)
+│   └── colors.ts              # (deprecated - use @pingclub/mobile-ui)
 ├── assets/
 ├── android/
 ├── ios/
@@ -232,7 +232,7 @@ apps/mobile-app/
 ```
 
 **Key Dependencies:**
-- `@dokifree/mobile-ui`
+- `@pingclub/mobile-ui`
 - `expo`, `react`, `react-native`
 - RN Primitives components
 - `nativewind`, `tailwindcss`
@@ -254,7 +254,7 @@ apps/api-server/
 │   │   ├── common/
 │   │   │   ├── adapters/      # External service adapters
 │   │   │   ├── config/
-│   │   │   ├── database/      # (deprecated - use @dokifree/database)
+│   │   │   ├── database/      # (deprecated - use @pingclub/database)
 │   │   │   ├── exceptions/
 │   │   │   ├── swagger/
 │   │   │   └── utils/
@@ -266,15 +266,15 @@ apps/api-server/
 │   └── shared/
 │       ├── dtos/              # Data transfer objects
 │       └── types/             # Shared types
-├── prisma/                    # (deprecated - moved to @dokifree/database)
+├── prisma/                    # (deprecated - moved to @pingclub/database)
 ├── package.json
 ├── next.config.js
 └── tsconfig.json
 ```
 
 **Key Dependencies:**
-- `@dokifree/database`
-- `@dokifree/auth`
+- `@pingclub/database`
+- `@pingclub/auth`
 - `next`, `react`, `react-dom`
 - `firebase-admin`
 - `jsonwebtoken`
@@ -290,32 +290,32 @@ apps/api-server/
 │ admin-portal │
 └──────┬───────┘
        │
-       ├─→ @dokifree/database
-       ├─→ @dokifree/auth
-       └─→ @dokifree/web-ui
+       ├─→ @pingclub/database
+       ├─→ @pingclub/auth
+       └─→ @pingclub/web-ui
 
 ┌──────────────┐
 │  mobile-app  │
 └──────┬───────┘
        │
-       └─→ @dokifree/mobile-ui
+       └─→ @pingclub/mobile-ui
 
 ┌──────────────┐
 │  api-server  │
 └──────┬───────┘
        │
-       ├─→ @dokifree/database
-       └─→ @dokifree/auth
+       ├─→ @pingclub/database
+       └─→ @pingclub/auth
 
 ┌──────────────┐
-│ @dokifree/   │
+│ @pingclub/   │
 │    auth      │
 └──────┬───────┘
        │
-       └─→ @dokifree/database
+       └─→ @pingclub/database
 
 ┌──────────────┐
-│ @dokifree/   │
+│ @pingclub/   │
 │   database   │
 └──────┬───────┘
        │
@@ -330,7 +330,7 @@ apps/api-server/
 
 ```json
 {
-  "name": "dokifree-monorepo",
+  "name": "pingclub-monorepo",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -339,7 +339,7 @@ apps/api-server/
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "db:generate": "yarn workspace @dokifree/database prisma:generate"
+    "db:generate": "yarn workspace @pingclub/database prisma:generate"
   }
 }
 ```
@@ -377,7 +377,7 @@ apps/api-server/
 ```bash
 # Clone repository
 git clone <repo-url>
-cd dokifree
+cd pingclub
 
 # Install dependencies
 yarn install
@@ -398,7 +398,7 @@ mkdir -p packages/new-package/src
 # Create package.json
 cat > packages/new-package/package.json << EOF
 {
-  "name": "@dokifree/new-package",
+  "name": "@pingclub/new-package",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts"
@@ -418,7 +418,7 @@ yarn install
 // In app's package.json
 {
   "dependencies": {
-    "@dokifree/new-package": "*"
+    "@pingclub/new-package": "*"
   }
 }
 ```
@@ -434,17 +434,17 @@ yarn install
 
 ### Package Build Order
 
-1. **@dokifree/database** (no dependencies)
-2. **@dokifree/auth** (depends on database)
-3. **@dokifree/web-ui** (no dependencies)
-4. **@dokifree/mobile-ui** (no dependencies)
+1. **@pingclub/database** (no dependencies)
+2. **@pingclub/auth** (depends on database)
+3. **@pingclub/web-ui** (no dependencies)
+4. **@pingclub/mobile-ui** (no dependencies)
 5. **Apps** (depend on packages)
 
 ### Build Commands
 
 ```bash
 # Build all packages
-yarn turbo run build --filter='@dokifree/*'
+yarn turbo run build --filter='@pingclub/*'
 
 # Build specific app
 yarn turbo run build --filter=admin-portal
@@ -461,10 +461,10 @@ yarn turbo run build --filter=api-server...
 
 ```typescript
 // From packages
-import { prisma, User } from '@dokifree/database';
-import { hashPassword } from '@dokifree/auth';
-import { COLORS } from '@dokifree/web-ui/tokens';
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { prisma, User } from '@pingclub/database';
+import { hashPassword } from '@pingclub/auth';
+import { COLORS } from '@pingclub/web-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 
 // From local files
 import { Component } from '@/components/Component';
@@ -501,7 +501,7 @@ export * from './tokens';
 
 ### 3. Type Safety
 - TypeScript throughout
-- Shared types from @dokifree/database
+- Shared types from @pingclub/database
 - Strict mode enabled
 
 ### 4. Code Reuse

@@ -26,8 +26,10 @@ export async function POST(request: NextRequest) {
     const data = await beResponse.json();
 
     if (!beResponse.ok) {
+      // Extract error message properly (BE returns { error: { code, message } })
+      const errorMsg = data.error?.message || data.message || 'Invalid username or password';
       return NextResponse.json(
-        { error: data.error || data.message || 'Invalid username or password' },
+        { error: errorMsg },
         { status: beResponse.status }
       );
     }
@@ -50,11 +52,12 @@ export async function POST(request: NextRequest) {
         username,
         role: 'ADMIN',
       },
+      accessToken: token, // Return token for client-side to store in localStorage
     });
 
     // Set JWT token cookie for server-side API calls
     nextResponse.cookies.set('admin_token', token, {
-      httpOnly: true,
+      httpOnly: false, // Set to false so Server Components can read it
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days

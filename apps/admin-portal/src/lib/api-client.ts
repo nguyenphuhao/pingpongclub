@@ -50,12 +50,15 @@ function getAdminToken(): string | null {
 
 /**
  * Set admin auth token
+ * Sets both localStorage (for client-side) and cookie (for SSR)
  */
 export function setAdminToken(token: string): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('admin_token', token);
-    // Also set cookie for SSR compatibility
-    document.cookie = `admin_token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+    // Set cookie for SSR compatibility with proper attributes
+    // HttpOnly cannot be set from client-side, but we'll set it server-side if needed
+    const maxAge = 7 * 24 * 60 * 60; // 7 days
+    document.cookie = `admin_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`;
   }
 }
 
@@ -95,11 +98,41 @@ async function apiFetch<T = any>(
       headers,
     });
 
-    const data = await response.json();
+    // Check if response is ok before parsing JSON
+    let data: any;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, use text response
+        const text = await response.text();
+        throw new ApiError(
+          text || 'Invalid response format',
+          response.status,
+          { raw: text },
+        );
+      }
+    } else {
+      const text = await response.text();
+      throw new ApiError(
+        text || 'Invalid response format',
+        response.status,
+        { raw: text },
+      );
+    }
 
     if (!response.ok) {
+      // Extract error message from response structure
+      const errorMessage = 
+        data.error?.message || 
+        (typeof data.error === 'string' ? data.error : null) ||
+        data.message || 
+        'Request failed';
+      
       throw new ApiError(
-        data.error || data.message || 'Request failed',
+        errorMessage,
         response.status,
         data,
       );
@@ -110,9 +143,20 @@ async function apiFetch<T = any>(
     if (error instanceof ApiError) {
       throw error;
     }
+    
+    // Handle network errors (CORS, connection refused, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new ApiError(
+        `Cannot connect to API server. Please check if the server is running at ${API_BASE_URL}`,
+        0,
+        { originalError: error.message },
+      );
+    }
+    
     throw new ApiError(
       error instanceof Error ? error.message : 'Network error',
       0,
+      { originalError: error },
     );
   }
 }
@@ -125,20 +169,49 @@ export const adminAuthApi = {
    * Admin login
    */
   async login(username: string, password: string) {
-    const response = await apiFetch<{
-      admin: any;
-      accessToken: string;
-      expiresIn: number;
-    }>('/api/admin/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await apiFetch<{
+        admin: any;
+        accessToken: string;
+        expiresIn: number;
+      }>('/api/admin/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (response.data?.accessToken) {
-      setAdminToken(response.data.accessToken);
+      if (response.data?.accessToken) {
+        setAdminToken(response.data.accessToken);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      // Re-throw with better error message
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(
+        error.message || 'Login failed. Please check your credentials.',
+        error.status || 0,
+      );
     }
+  },
 
-    return response.data;
+  /**
+   * Get current admin user
+   */
+  async getCurrentAdmin() {
+    const response = await apiFetch<{
+      id: string;
+      username: string;
+      email: string | null;
+      firstName: string | null;
+      lastName: string | null;
+      avatar: string | null;
+      role: string;
+      status: string;
+    }>('/api/admin/auth/me');
+
+    return response.data || null;
   },
 
   /**

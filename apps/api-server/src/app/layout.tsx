@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Dokifree Backend',
+  title: 'Pingclub Backend',
   description: 'Next.js backend architecture ready for NestJS migration',
 };
 

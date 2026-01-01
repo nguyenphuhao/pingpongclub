@@ -1,5 +1,5 @@
 // app.config.js
-// Multi-environment configuration for Dokifree App
+// Multi-environment configuration for Pingclub App
 // Supports: staging and production environments
 
 const IS_STAGING = process.env.APP_ENV === 'staging';
@@ -8,8 +8,8 @@ const getAppConfig = () => {
   const baseConfig = {
     expo: {
       // App name changes based on environment
-      name: IS_STAGING ? 'DOKIFREE (Staging)' : 'DOKIFREE',
-      slug: 'dokifree-app',
+      name: IS_STAGING ? 'PINGCLUB (Staging)' : 'PINGCLUB',
+      slug: 'pingclub-app',
       version: '1.0.0',
       orientation: 'portrait',
       
@@ -19,7 +19,7 @@ const getAppConfig = () => {
         : './assets/images/icon.png',
       
       // Different URL schemes
-      scheme: IS_STAGING ? 'dokifree-staging' : 'dokifree-app',
+      scheme: IS_STAGING ? 'pingclub-staging' : 'pingclub-app',
       userInterfaceStyle: 'automatic',
       newArchEnabled: true,
       
@@ -36,8 +36,8 @@ const getAppConfig = () => {
         supportsTablet: true,
         // Different bundle identifiers allow both apps to be installed simultaneously
         bundleIdentifier: IS_STAGING
-          ? 'com.dokifreeapp.staging'
-          : 'com.dokifreeapp.prod',
+          ? 'com.pingclubapp.staging'
+          : 'com.pingclubapp.prod',
       },
       
       // Android configuration
@@ -45,8 +45,8 @@ const getAppConfig = () => {
         edgeToEdgeEnabled: true,
         // Different package names allow both apps to be installed simultaneously
         package: IS_STAGING
-          ? 'com.dokifreeapp.staging'
-          : 'com.dokifreeapp.prod',
+          ? 'com.pingclubapp.staging'
+          : 'com.pingclubapp.prod',
         adaptiveIcon: {
           foregroundImage: IS_STAGING
             ? './assets/images/adaptive-icon-staging.png'
@@ -73,8 +73,8 @@ const getAppConfig = () => {
         environment: IS_STAGING ? 'staging' : 'production',
         // API URLs for different environments
         apiUrl: IS_STAGING 
-          ? 'https://api-staging.dokifree.com'
-          : 'https://api.dokifree.com',
+          ? 'https://api-staging.pingclub.com'
+          : 'https://api.pingclub.com',
         // Feature flags
         enableDebugMode: IS_STAGING,
         enableAnalytics: !IS_STAGING, // Only in production

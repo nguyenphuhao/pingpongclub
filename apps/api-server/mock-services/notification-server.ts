@@ -436,7 +436,7 @@ Content-Type: application/json
 
 {
   "to": "user@example.com",
-  "from": "noreply@dokifree.com",
+  "from": "noreply@pingclub.com",
   "subject": "Test Email",
   "html": "<h1>Hello</h1>",
   "text": "Hello"

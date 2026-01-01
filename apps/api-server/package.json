@@ -21,8 +21,8 @@
     "sync:admin-schema": "node scripts/sync-admin-schema.js"
   },
   "dependencies": {
-    "@dokifree/database": "*",
-    "@dokifree/auth": "*",
+    "@pingclub/database": "*",
+    "@pingclub/auth": "*",
     "@sendgrid/mail": "^8.1.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",

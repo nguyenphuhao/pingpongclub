@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { adminService } from '@/server/modules/admin/application/admin.service';
 import { successResponse, errorResponse } from '@/server/http/utils/response.helper';
 import { validateBody } from '@/server/http/utils/validation.helper';
+import { addCorsHeaders, handleOptionsRequest } from '@/server/http/utils/cors.helper';
 import { z } from 'zod';
 
 /**
@@ -37,16 +38,25 @@ const LoginDtoSchema = z.object({
   password: z.string().min(1),
 });
 
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return handleOptionsRequest(origin);
+}
+
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  
   try {
     const body = await request.json();
     const dto = await validateBody(LoginDtoSchema, body);
 
     const result = await adminService.login(dto.username, dto.password);
 
-    return successResponse(result);
+    const response = successResponse(result);
+    return addCorsHeaders(response, origin);
   } catch (error: any) {
-    return errorResponse(error);
+    const response = errorResponse(error);
+    return addCorsHeaders(response, origin);
   }
 }
 

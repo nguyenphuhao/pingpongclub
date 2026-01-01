@@ -1,8 +1,8 @@
 /**
- * DEPRECATED: This file has been moved to @dokifree/web-ui package
- * Please use: import { COLORS, TYPOGRAPHY, etc } from '@dokifree/web-ui/tokens'
+ * DEPRECATED: This file has been moved to @pingclub/web-ui package
+ * Please use: import { COLORS, TYPOGRAPHY, etc } from '@pingclub/web-ui/tokens'
  * 
  * This file is kept for backward compatibility only.
  */
 
-export * from '@dokifree/web-ui/tokens';
+export * from '@pingclub/web-ui/tokens';

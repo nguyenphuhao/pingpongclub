@@ -1,8 +1,8 @@
 /**
- * DEPRECATED: This file has been moved to @dokifree/mobile-ui package
- * Please use: import { COLORS } from '@dokifree/mobile-ui/tokens'
+ * DEPRECATED: This file has been moved to @pingclub/mobile-ui package
+ * Please use: import { COLORS } from '@pingclub/mobile-ui/tokens'
  * 
  * This file is kept for backward compatibility only.
  */
 
-export * from '@dokifree/mobile-ui/tokens/colors';
+export * from '@pingclub/mobile-ui/tokens/colors';

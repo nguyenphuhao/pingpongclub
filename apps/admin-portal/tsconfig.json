@@ -25,7 +25,12 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@pingclub/database": ["../../packages/database/src/index.ts"],
+      "@pingclub/auth": ["../../packages/auth/src/index.ts"],
+      "@pingclub/auth/admin": ["../../packages/auth/src/admin/index.ts"],
+      "@pingclub/auth/user": ["../../packages/auth/src/user/index.ts"],
+      "@pingclub/auth/utils": ["../../packages/auth/src/utils/index.ts"]
     }
   },
   "include": [
@@ -35,7 +40,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "src/lib/generated/**/*"
+    "src/lib/generated/**/*",
+    "../../packages/database/src/**/*.ts",
+    "../../packages/auth/src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

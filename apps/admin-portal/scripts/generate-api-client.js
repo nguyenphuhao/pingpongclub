@@ -47,7 +47,7 @@ async function main() {
   if (!isServerRunning) {
     console.log('⚠️  Warning: Cannot reach BE server');
     console.log(`💡 Make sure BE server is running on ${API_URL}`);
-    console.log('💡 You can start it with: cd ../dokifree-be && yarn dev');
+    console.log('💡 You can start it with: cd ../pingclub-be && yarn dev');
     console.log('');
     console.log('❌ Aborting API client generation');
     process.exit(1);

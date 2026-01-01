@@ -33,6 +33,43 @@ model User {
   lastName  String?  @map("last_name")
   avatar    String?
   
+  // Player Profile (for Members Module)
+  nickname    String?    // Display name for players
+  displayName String?    @map("display_name") // Full display name
+  gender      Gender?
+  dateOfBirth DateTime?  @map("date_of_birth")
+  
+  // Player Rating & Ranking
+  ratingPoints     Int       @default(1000) @map("rating_points") // Current rating
+  peakRating       Int       @default(1000) @map("peak_rating")   // Highest rating achieved
+  initialRating    Int       @default(1000) @map("initial_rating") // Starting rating
+  
+  // Player Stats
+  totalMatches     Int       @default(0) @map("total_matches")
+  totalWins        Int       @default(0) @map("total_wins")
+  totalLosses      Int       @default(0) @map("total_losses")
+  totalDraws       Int       @default(0) @map("total_draws")
+  winRate          Float?    @map("win_rate") // Calculated field
+  currentStreak    Int       @default(0) @map("current_streak") // Win/loss streak
+  
+  // Player Experience
+  yearsPlaying     Float?    @map("years_playing") // Years of playing (for rank G)
+  startedPlayingAt DateTime? @map("started_playing_at")
+  
+  // Player Tags & Style
+  tags             String[]  @default([]) // ["singles", "doubles", "left-handed"]
+  playStyle        String?   @map("play_style") // "Defensive", "Offensive", "All-round"
+  
+  // Profile Settings
+  profileVisibility ProfileVisibility @default(PUBLIC) @map("profile_visibility")
+  showPhone         Boolean   @default(false) @map("show_phone")
+  showEmail         Boolean   @default(false) @map("show_email")
+  showRating        Boolean   @default(true)  @map("show_rating")
+  
+  // Bio & Notes
+  bio               String?
+  adminNotes        String?   @map("admin_notes") // Only admin can see
+  
   // Role & Status
   role      UserRole @default(USER)
   status    UserStatus @default(ACTIVE)
@@ -52,11 +89,16 @@ model User {
   notifications Notification[]
   devices       Device[]
   loginHistory  LoginHistory[]
+  ratingHistory RatingHistory[]
+  matchParticipations MatchParticipant[]
   
   @@map("users")
   @@index([email])
   @@index([firebaseUid])
   @@index([provider])
+  @@index([ratingPoints])
+  @@index([status])
+  @@index([nickname])
 }
 
 enum UserRole {
@@ -70,6 +112,32 @@ enum UserStatus {
   INACTIVE
   SUSPENDED
   DELETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ProfileVisibility {
+  PUBLIC    // Everyone can see
+  MEMBERS   // Only club members
+  PRIVATE   // Only admin and self
+}
+
+enum PlayerRank {
+  A_STAR  // > 2200
+  A       // 2001-2200
+  B       // 1801-2000
+  C       // 1601-1800
+  D       // 1401-1600
+  E       // 1201-1400
+  F       // 1001-1200
+  G       // 801-1000 (playing <= 1 year)
+  H       // <= 800 (beginners)
+  UNRANKED
 }
 
 model RefreshToken {
@@ -321,6 +389,126 @@ enum AdminStatus {
   INACTIVE
   SUSPENDED
   DELETED
+}
+
+// ============================================
+// RATING & RANKING SYSTEM
+// ============================================
+
+model RatingHistory {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  
+  // Rating change
+  oldRating       Int      @map("old_rating")
+  newRating       Int      @map("new_rating")
+  ratingChange    Int      @map("rating_change") // Can be negative
+  
+  // Old and new rank
+  oldRank         PlayerRank @map("old_rank")
+  newRank         PlayerRank @map("new_rank")
+  
+  // Reason for change
+  changeReason    RatingChangeReason @map("change_reason")
+  matchId         String?   @map("match_id")
+  notes           String?
+  
+  // Timestamp
+  changedAt       DateTime  @default(now()) @map("changed_at")
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match           Match?    @relation(fields: [matchId], references: [id])
+  
+  @@map("rating_history")
+  @@index([userId])
+  @@index([changedAt])
+  @@index([matchId])
+}
+
+enum RatingChangeReason {
+  MATCH_WIN
+  MATCH_LOSS
+  MATCH_DRAW
+  ADMIN_ADJUSTMENT
+  INITIAL_RATING
+  SEASON_RESET
+  TOURNAMENT_BONUS
+}
+
+// ============================================
+// MATCHES
+// ============================================
+
+model Match {
+  id              String   @id @default(cuid())
+  
+  matchType       MatchType
+  matchDate       DateTime  @map("match_date")
+  
+  // Match metadata
+  tournamentId    String?   @map("tournament_id")
+  round           String?   // "Quarter-final", "Semi-final", etc.
+  courtNumber     String?   @map("court_number")
+  
+  // Status
+  status          MatchStatus @default(SCHEDULED)
+  
+  // Results
+  finalScore      String?   @map("final_score") // "3-2", "11-9,11-7,9-11"
+  winnerId        String?   @map("winner_id")
+  
+  // Metadata
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  participants    MatchParticipant[]
+  ratingChanges   RatingHistory[]
+  
+  @@map("matches")
+  @@index([matchDate])
+  @@index([status])
+  @@index([winnerId])
+}
+
+model MatchParticipant {
+  id              String   @id @default(cuid())
+  matchId         String   @map("match_id")
+  userId          String   @map("user_id")
+  
+  // Result
+  isWinner        Boolean? @map("is_winner")
+  score           String?  // Individual score if applicable
+  
+  // Rating change from this match
+  ratingBefore    Int      @map("rating_before")
+  ratingAfter     Int      @map("rating_after")
+  ratingChange    Int      @map("rating_change")
+  
+  // Relations
+  match           Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("match_participants")
+  @@index([matchId])
+  @@index([userId])
+  @@unique([matchId, userId])
+}
+
+enum MatchType {
+  SINGLES
+  DOUBLES
+  TEAM
+  PRACTICE
+}
+
+enum MatchStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 // ============================================

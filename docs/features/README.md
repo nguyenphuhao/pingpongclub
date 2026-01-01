@@ -1,8 +1,8 @@
-# Dokifree Platform Features
+# Pingclub Platform Features
 
 ## Overview
 
-This directory contains documentation for all features and capabilities in the Dokifree platform.
+This directory contains documentation for all features and capabilities in the Pingclub platform.
 
 ## 📋 Feature Catalog
 

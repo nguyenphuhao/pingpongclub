@@ -12,9 +12,9 @@
     "generate:api:url": "swagger-typescript-api -p"
   },
   "dependencies": {
-    "@dokifree/database": "*",
-    "@dokifree/auth": "*",
-    "@dokifree/web-ui": "*",
+    "@pingclub/database": "*",
+    "@pingclub/auth": "*",
+    "@pingclub/web-ui": "*",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",

@@ -1,4 +1,4 @@
-import { User as PrismaUser } from '@dokifree/database';
+import { User as PrismaUser } from '@pingclub/database';
 import { User, UserRole, UserStatus } from '@/shared/types';
 
 /**

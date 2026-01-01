@@ -64,7 +64,7 @@ Content-Type: application/json
 
 {
   "to": "user@example.com",
-  "from": "noreply@dokifree.com",
+  "from": "noreply@pingclub.com",
   "subject": "Test Email",
   "html": "<h1>Hello World</h1>",
   "text": "Hello World"
@@ -152,8 +152,8 @@ Mock server log mọi request nhận được:
 ```
 📧 [EMAIL] Received: {
   to: 'user@example.com',
-  from: 'noreply@dokifree.com',
-  subject: 'Welcome to Dokifree',
+  from: 'noreply@pingclub.com',
+  subject: 'Welcome to Pingclub',
   timestamp: '2025-11-30T...'
 }
 

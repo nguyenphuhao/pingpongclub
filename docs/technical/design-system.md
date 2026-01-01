@@ -2,11 +2,11 @@
 
 ## Overview
 
-Dokifree design system is shared across web and mobile platforms through workspace packages.
+Pingclub design system is shared across web and mobile platforms through workspace packages.
 
 **Packages:**
-- `@dokifree/web-ui` - Web design tokens
-- `@dokifree/mobile-ui` - Mobile design tokens
+- `@pingclub/web-ui` - Web design tokens
+- `@pingclub/mobile-ui` - Mobile design tokens
 
 ---
 
@@ -275,7 +275,7 @@ module.exports = {
 ### Usage in Components
 
 ```typescript
-import { COLORS } from '@dokifree/web-ui/tokens';
+import { COLORS } from '@pingclub/web-ui/tokens';
 
 // In component
 <button 
@@ -316,7 +316,7 @@ module.exports = {
 ### Usage in React Native
 
 ```typescript
-import { COLORS } from '@dokifree/mobile-ui/tokens';
+import { COLORS } from '@pingclub/mobile-ui/tokens';
 import { View, Text } from 'react-native';
 
 // Direct style

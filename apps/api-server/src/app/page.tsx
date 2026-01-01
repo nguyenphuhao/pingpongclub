@@ -3,7 +3,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
       <main className="max-w-4xl w-full space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold">🚀 Dokifree Backend</h1>
+          <h1 className="text-4xl font-bold">🚀 Pingclub Backend</h1>
           <p className="text-xl text-gray-600">
             Next.js backend với kiến trúc sẵn sàng migrate sang NestJS
           </p>

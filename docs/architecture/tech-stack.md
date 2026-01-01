@@ -129,7 +129,7 @@
 
 ## 🏗️ Shared Packages Stack
 
-### @dokifree/database
+### @pingclub/database
 ```json
 {
   "dependencies": {
@@ -142,17 +142,17 @@
 }
 ```
 
-### @dokifree/auth
+### @pingclub/auth
 ```json
 {
   "dependencies": {
-    "@dokifree/database": "*",
+    "@pingclub/database": "*",
     "bcryptjs": "^2.4.3"
   }
 }
 ```
 
-### @dokifree/web-ui
+### @pingclub/web-ui
 ```json
 {
   "dependencies": {},
@@ -163,7 +163,7 @@
 }
 ```
 
-### @dokifree/mobile-ui
+### @pingclub/mobile-ui
 ```json
 {
   "dependencies": {},

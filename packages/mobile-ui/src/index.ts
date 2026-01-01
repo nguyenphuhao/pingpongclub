@@ -1,5 +1,5 @@
 /**
- * @dokifree/mobile-ui
+ * @pingclub/mobile-ui
  * Shared design system for React Native mobile applications
  */
 

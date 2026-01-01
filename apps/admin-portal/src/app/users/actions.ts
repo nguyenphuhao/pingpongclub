@@ -1,7 +1,7 @@
 'use server';
 
 import { usersApiV2 as usersApi } from '@/lib/api-client-v2';
-import { UserRole, UserStatus } from '@dokifree/database';
+import { UserRole, UserStatus } from '@pingclub/database';
 import { revalidatePath } from 'next/cache';
 
 export interface UserListParams {
