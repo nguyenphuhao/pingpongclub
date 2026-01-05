@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(apps/api-server/src/app/api/admin/tournaments )",
+      "Bash(apps/api-server/src/server/modules/tournament )",
+      "Bash(apps/admin-portal/src/app/tournaments )",
+      "Bash(apps/admin-portal/src/components/tournaments )",
+      "Bash(apps/admin-portal/src/lib/api/tournaments.ts )",
+      "Bash(apps/api-server/scripts/test-challonge-groups.ts)",
+      "Bash(apps/api-server/TOURNAMENT_API.md )",
+      "Bash(apps/admin-portal/TOURNAMENT_UI.md )",
+      "Bash(TOURNAMENT_FIXES.md )",
+      "Bash(TOURNAMENT_UPDATES.md)",
+      "Bash(yarn workspace @pingclub/database prisma generate:*)",
+      "Bash(yarn workspace @pingclub/database prisma migrate:*)",
+      "Bash(find:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(yarn build:*)",
+      "Bash(yarn add:*)",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(yarn workspace:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(yarn prisma generate:*)",
+      "Bash(psql:*)",
+      "Bash(node:*)"
+    ]
+  }
+}

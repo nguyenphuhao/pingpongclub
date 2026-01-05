@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Shield,
   Users,
+  Trophy,
 } from 'lucide-react';
 
 const menuItems = [
@@ -20,9 +21,9 @@ const menuItems = [
   {
     title: 'System',
     items: [
-      { 
+      {
         label: 'User Accounts',
-        href: '/users', 
+        href: '/users',
         icon: Shield,
         badge: '🔐',
       },
@@ -31,11 +32,17 @@ const menuItems = [
   {
     title: 'Club',
     items: [
-      { 
+      {
         label: 'Members',
-        href: '/members', 
+        href: '/members',
         icon: Users,
         badge: '🏸',
+      },
+      {
+        label: 'Tournaments',
+        href: '/tournaments',
+        icon: Trophy,
+        badge: '🏆',
       },
     ],
   },

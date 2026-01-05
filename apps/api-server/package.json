@@ -21,9 +21,10 @@
     "sync:admin-schema": "node scripts/sync-admin-schema.js"
   },
   "dependencies": {
-    "@pingclub/database": "*",
     "@pingclub/auth": "*",
+    "@pingclub/database": "*",
     "@sendgrid/mail": "^8.1.6",
+    "axios": "^1.13.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "date-fns": "^3.0.0",

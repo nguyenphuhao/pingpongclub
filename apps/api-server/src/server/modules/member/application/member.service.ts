@@ -8,7 +8,8 @@
 import { 
   User, 
   UserStatus, 
-  PlayerRank, 
+  PlayerRank,
+  Gender,
   calculateRank, 
   calculateYearsPlaying, 
   calculateWinRate,
@@ -291,7 +292,7 @@ export class MemberService {
     // Get gender distribution
     const genderDist = await this.repository.getGenderDistribution();
     const genderDistribution = genderDist.map(item => ({
-      gender: item.gender || 'UNKNOWN',
+      gender: (item.gender || 'UNKNOWN') as Gender | 'UNKNOWN',
       count: item._count.gender,
     }));
 
@@ -331,9 +332,11 @@ export class MemberService {
     ctx: RequestContext & { targetUserId?: string }
   ): MemberPublicDto | MemberAdminDto {
     const canViewSensitive = MemberPermissions.canViewSensitiveFields(ctx);
+    const canViewAllMembers = MemberPermissions.canViewAllMembers(ctx);
 
     // Calculate years playing for display
     const yearsPlaying = calculateYearsPlaying(member.startedPlayingAt);
+    const currentRank = calculateRank(member.ratingPoints, yearsPlaying);
 
     // Base public data
     const publicData: MemberPublicDto = {
@@ -342,6 +345,7 @@ export class MemberService {
       displayName: member.displayName,
       avatar: member.avatar,
       ratingPoints: member.showRating ? member.ratingPoints : null,
+      currentRank, // Add current rank
       totalMatches: member.totalMatches,
       winRate: member.winRate,
       tags: member.tags,
@@ -353,7 +357,7 @@ export class MemberService {
       return {
         ...publicData,
         email: member.email,
-        phone: member.showPhone ? member.phone : null,
+        phone: canViewAllMembers ? member.phone : member.showPhone ? member.phone : null,
         firstName: member.firstName,
         lastName: member.lastName,
         gender: member.gender,
@@ -379,4 +383,3 @@ export class MemberService {
     return publicData;
   }
 }
-

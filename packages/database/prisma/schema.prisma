@@ -15,90 +15,91 @@ datasource db {
 // ============================================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  phone     String?  @unique
-  
+  id    String  @id @default(cuid())
+  email String  @unique
+  phone String? @unique
+
   // Firebase UID (if using Firebase Auth)
   firebaseUid String? @unique @map("firebase_uid")
-  
+
   // Auth Provider (google.com, facebook.com, password, phone)
   provider String? // Firebase sign-in provider or 'phone' for OTP
-  
+
   // Password (hashed using bcrypt)
   password String? // Hashed password for email/phone login
-  
+
   // Profile
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
   avatar    String?
-  
+
   // Player Profile (for Members Module)
-  nickname    String?    // Display name for players
-  displayName String?    @map("display_name") // Full display name
+  nickname    String? // Display name for players
+  displayName String?   @map("display_name") // Full display name
   gender      Gender?
-  dateOfBirth DateTime?  @map("date_of_birth")
-  
+  dateOfBirth DateTime? @map("date_of_birth")
+
   // Player Rating & Ranking
-  ratingPoints     Int       @default(1000) @map("rating_points") // Current rating
-  peakRating       Int       @default(1000) @map("peak_rating")   // Highest rating achieved
-  initialRating    Int       @default(1000) @map("initial_rating") // Starting rating
-  
+  ratingPoints  Int @default(1000) @map("rating_points") // Current rating
+  peakRating    Int @default(1000) @map("peak_rating") // Highest rating achieved
+  initialRating Int @default(1000) @map("initial_rating") // Starting rating
+
   // Player Stats
-  totalMatches     Int       @default(0) @map("total_matches")
-  totalWins        Int       @default(0) @map("total_wins")
-  totalLosses      Int       @default(0) @map("total_losses")
-  totalDraws       Int       @default(0) @map("total_draws")
-  winRate          Float?    @map("win_rate") // Calculated field
-  currentStreak    Int       @default(0) @map("current_streak") // Win/loss streak
-  
+  totalMatches  Int    @default(0) @map("total_matches")
+  totalWins     Int    @default(0) @map("total_wins")
+  totalLosses   Int    @default(0) @map("total_losses")
+  totalDraws    Int    @default(0) @map("total_draws")
+  winRate       Float? @map("win_rate") // Calculated field
+  currentStreak Int    @default(0) @map("current_streak") // Win/loss streak
+
   // Player Experience
   yearsPlaying     Float?    @map("years_playing") // Years of playing (for rank G)
   startedPlayingAt DateTime? @map("started_playing_at")
-  
+
   // Player Tags & Style
-  tags             String[]  @default([]) // ["singles", "doubles", "left-handed"]
-  playStyle        String?   @map("play_style") // "Defensive", "Offensive", "All-round"
-  
+  tags      String[] @default([]) // ["singles", "doubles", "left-handed"]
+  playStyle String?  @map("play_style") // "Defensive", "Offensive", "All-round"
+
   // Profile Settings
   profileVisibility ProfileVisibility @default(PUBLIC) @map("profile_visibility")
-  showPhone         Boolean   @default(false) @map("show_phone")
-  showEmail         Boolean   @default(false) @map("show_email")
-  showRating        Boolean   @default(true)  @map("show_rating")
-  
+  showPhone         Boolean           @default(false) @map("show_phone")
+  showEmail         Boolean           @default(false) @map("show_email")
+  showRating        Boolean           @default(true) @map("show_rating")
+
   // Bio & Notes
-  bio               String?
-  adminNotes        String?   @map("admin_notes") // Only admin can see
-  
+  bio        String?
+  adminNotes String? @map("admin_notes") // Only admin can see
+
   // Role & Status
-  role      UserRole @default(USER)
-  status    UserStatus @default(ACTIVE)
-  
+  role   UserRole   @default(USER)
+  status UserStatus @default(ACTIVE)
+
   // Verification
   emailVerified Boolean @default(false) @map("email_verified")
   phoneVerified Boolean @default(false) @map("phone_verified")
-  
+
   // Metadata
   lastLoginAt DateTime? @map("last_login_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
-  
+
   // Relations
-  refreshTokens RefreshToken[]
-  notifications Notification[]
-  devices       Device[]
-  loginHistory  LoginHistory[]
-  ratingHistory RatingHistory[]
-  matchParticipations MatchParticipant[]
-  
-  @@map("users")
+  refreshTokens            RefreshToken[]
+  notifications            Notification[]
+  devices                  Device[]
+  loginHistory             LoginHistory[]
+  ratingHistory            RatingHistory[]
+  matchParticipations      MatchParticipant[]
+  tournamentParticipations TournamentParticipant[]
+
   @@index([email])
   @@index([firebaseUid])
   @@index([provider])
   @@index([ratingPoints])
   @@index([status])
   @@index([nickname])
+  @@map("users")
 }
 
 enum UserRole {
@@ -122,77 +123,77 @@ enum Gender {
 }
 
 enum ProfileVisibility {
-  PUBLIC    // Everyone can see
-  MEMBERS   // Only club members
-  PRIVATE   // Only admin and self
+  PUBLIC // Everyone can see
+  MEMBERS // Only club members
+  PRIVATE // Only admin and self
 }
 
 enum PlayerRank {
-  A_STAR  // > 2200
-  A       // 2001-2200
-  B       // 1801-2000
-  C       // 1601-1800
-  D       // 1401-1600
-  E       // 1201-1400
-  F       // 1001-1200
-  G       // 801-1000 (playing <= 1 year)
-  H       // <= 800 (beginners)
+  A_STAR // > 2200
+  A // 2001-2200
+  B // 1801-2000
+  C // 1601-1800
+  D // 1401-1600
+  E // 1201-1400
+  F // 1001-1200
+  G // 801-1000 (playing <= 1 year)
+  H // <= 800 (beginners)
   UNRANKED
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String   @map("user_id")
-  
+  id     String @id @default(cuid())
+  token  String @unique
+  userId String @map("user_id")
+
   // Device & Session Info
-  deviceId    String?       @map("device_id")
-  platform    DevicePlatform? 
-  ipAddress   String?       @map("ip_address")
-  userAgent   String?       @map("user_agent")
-  
-  expiresAt DateTime @map("expires_at")
+  deviceId  String?         @map("device_id")
+  platform  DevicePlatform?
+  ipAddress String?         @map("ip_address")
+  userAgent String?         @map("user_agent")
+
+  expiresAt  DateTime @map("expires_at")
   lastUsedAt DateTime @default(now()) @map("last_used_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   loginHistory LoginHistory?
-  
-  @@map("refresh_tokens")
+
   @@index([userId])
   @@index([token])
   @@index([deviceId])
   @@index([userId, deviceId])
+  @@map("refresh_tokens")
 }
 
 model OtpVerification {
-  id        String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Email or Phone number
   identifier     String
   identifierType OtpIdentifierType
-  
+
   // OTP Code (6 digits)
-  otpCode   String @map("otp_code")
-  
+  otpCode String @map("otp_code")
+
   // Purpose: REGISTRATION or LOGIN
-  purpose   OtpPurpose
-  
+  purpose OtpPurpose
+
   // Status
-  verified  Boolean  @default(false)
-  attempts  Int      @default(0) // Number of failed attempts
-  
+  verified Boolean @default(false)
+  attempts Int     @default(0) // Number of failed attempts
+
   // Expiration
   expiresAt  DateTime  @map("expires_at")
   verifiedAt DateTime? @map("verified_at")
-  
+
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  
-  @@map("otp_verifications")
+
   @@index([identifier, purpose])
   @@index([otpCode])
+  @@map("otp_verifications")
 }
 
 enum OtpIdentifierType {
@@ -210,40 +211,40 @@ enum OtpPurpose {
 // ============================================
 
 model LoginHistory {
-  id          String        @id @default(cuid())
-  userId      String        @map("user_id")
-  
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+
   // Device & Platform Info
   platform    DevicePlatform
-  deviceId    String?       @map("device_id")
-  deviceModel String?       @map("device_model")
-  osVersion   String?       @map("os_version")
-  
+  deviceId    String?        @map("device_id")
+  deviceModel String?        @map("device_model")
+  osVersion   String?        @map("os_version")
+
   // Network Info
-  ipAddress   String?       @map("ip_address")
-  userAgent   String?       @map("user_agent")
-  location    String?       // City, Country (optional, from IP geolocation)
-  
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+  location  String? // City, Country (optional, from IP geolocation)
+
   // Login Method
   loginMethod LoginMethod
-  
+
   // Status
-  status      LoginStatus   @default(SUCCESS)
+  status        LoginStatus @default(SUCCESS)
   failureReason String?     @map("failure_reason")
-  
+
   // Timestamps
-  loginAt     DateTime      @default(now()) @map("login_at")
-  
+  loginAt DateTime @default(now()) @map("login_at")
+
   // Relations
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  refreshToken RefreshToken? @relation(fields: [refreshTokenId], references: [id])
-  refreshTokenId String?    @unique @map("refresh_token_id")
-  
-  @@map("login_history")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken   RefreshToken? @relation(fields: [refreshTokenId], references: [id])
+  refreshTokenId String?       @unique @map("refresh_token_id")
+
   @@index([userId])
   @@index([loginAt])
   @@index([platform])
   @@index([status])
+  @@map("login_history")
 }
 
 enum LoginMethod {
@@ -264,32 +265,32 @@ enum LoginStatus {
 // ============================================
 
 model Notification {
-  id      String             @id @default(cuid())
-  userId  String             @map("user_id")
-  
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+
   type    NotificationType
   channel NotificationChannel
-  
-  title   String
-  body    String
-  data    Json?              // Additional data as JSON
-  
-  status  NotificationStatus @default(PENDING)
-  
-  sentAt  DateTime?          @map("sent_at")
-  readAt  DateTime?          @map("read_at")
-  
-  error   String?            // Error message if failed
-  
+
+  title String
+  body  String
+  data  Json? // Additional data as JSON
+
+  status NotificationStatus @default(PENDING)
+
+  sentAt DateTime? @map("sent_at")
+  readAt DateTime? @map("read_at")
+
+  error String? // Error message if failed
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("notifications")
+
   @@index([userId])
   @@index([status])
   @@index([type])
+  @@map("notifications")
 }
 
 enum NotificationType {
@@ -319,27 +320,27 @@ enum NotificationStatus {
 // ============================================
 
 model Device {
-  id       String       @id @default(cuid())
-  userId   String       @map("user_id")
-  
-  fcmToken String       @unique @map("fcm_token")
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+
+  fcmToken String         @unique @map("fcm_token")
   platform DevicePlatform
-  
-  deviceId String?      @map("device_id")
-  model    String?
-  osVersion String?     @map("os_version")
-  
-  isActive Boolean      @default(true) @map("is_active")
-  
-  lastUsedAt DateTime   @default(now()) @map("last_used_at")
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
-  
+
+  deviceId  String? @map("device_id")
+  model     String?
+  osVersion String? @map("os_version")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("devices")
+
   @@index([userId])
   @@index([fcmToken])
+  @@map("devices")
 }
 
 enum DevicePlatform {
@@ -353,30 +354,30 @@ enum DevicePlatform {
 // ============================================
 
 model Admin {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String   // Hashed password using bcrypt
-  
+  id       String @id @default(cuid())
+  username String @unique
+  password String // Hashed password using bcrypt
+
   // Profile
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
-  email     String?  @unique
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
+  email     String? @unique
   avatar    String?
-  
+
   // Role & Status
-  role      AdminRole @default(ADMIN)
-  status    AdminStatus @default(ACTIVE)
-  
+  role   AdminRole   @default(ADMIN)
+  status AdminStatus @default(ACTIVE)
+
   // Metadata
   lastLoginAt DateTime? @map("last_login_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
-  
-  @@map("admins")
+
   @@index([username])
   @@index([email])
   @@index([status])
+  @@map("admins")
 }
 
 enum AdminRole {
@@ -396,34 +397,34 @@ enum AdminStatus {
 // ============================================
 
 model RatingHistory {
-  id              String   @id @default(cuid())
-  userId          String   @map("user_id")
-  
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+
   // Rating change
-  oldRating       Int      @map("old_rating")
-  newRating       Int      @map("new_rating")
-  ratingChange    Int      @map("rating_change") // Can be negative
-  
+  oldRating    Int @map("old_rating")
+  newRating    Int @map("new_rating")
+  ratingChange Int @map("rating_change") // Can be negative
+
   // Old and new rank
-  oldRank         PlayerRank @map("old_rank")
-  newRank         PlayerRank @map("new_rank")
-  
+  oldRank PlayerRank @map("old_rank")
+  newRank PlayerRank @map("new_rank")
+
   // Reason for change
-  changeReason    RatingChangeReason @map("change_reason")
-  matchId         String?   @map("match_id")
-  notes           String?
-  
+  changeReason RatingChangeReason @map("change_reason")
+  matchId      String?            @map("match_id")
+  notes        String?
+
   // Timestamp
-  changedAt       DateTime  @default(now()) @map("changed_at")
-  
+  changedAt DateTime @default(now()) @map("changed_at")
+
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match           Match?    @relation(fields: [matchId], references: [id])
-  
-  @@map("rating_history")
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match? @relation(fields: [matchId], references: [id])
+
   @@index([userId])
   @@index([changedAt])
   @@index([matchId])
+  @@map("rating_history")
 }
 
 enum RatingChangeReason {
@@ -433,7 +434,6 @@ enum RatingChangeReason {
   ADMIN_ADJUSTMENT
   INITIAL_RATING
   SEASON_RESET
-  TOURNAMENT_BONUS
 }
 
 // ============================================
@@ -441,60 +441,67 @@ enum RatingChangeReason {
 // ============================================
 
 model Match {
-  id              String   @id @default(cuid())
-  
-  matchType       MatchType
-  matchDate       DateTime  @map("match_date")
-  
+  id String @id @default(cuid())
+
+  matchType MatchType
+  matchDate DateTime  @map("match_date")
+
+  // Challonge sync
+  challongeMatchId String?   @unique @map("challonge_match_id")
+  challongeRawData Json?     @map("challonge_raw_data")
+  challongeRound   Int?      @map("challonge_round")
+  lastSyncedAt     DateTime? @map("last_synced_at")
+  syncVersion      Int       @default(0) @map("sync_version")
+
   // Match metadata
-  tournamentId    String?   @map("tournament_id")
-  round           String?   // "Quarter-final", "Semi-final", etc.
-  courtNumber     String?   @map("court_number")
-  
+  round       String? // "Quarter-final", "Semi-final", etc.
+  courtNumber String? @map("court_number")
+
   // Status
-  status          MatchStatus @default(SCHEDULED)
-  
+  status MatchStatus @default(SCHEDULED)
+
   // Results
-  finalScore      String?   @map("final_score") // "3-2", "11-9,11-7,9-11"
-  winnerId        String?   @map("winner_id")
-  
+  finalScore String? @map("final_score") // "3-2", "11-9,11-7,9-11"
+  winnerId   String? @map("winner_id")
+
   // Metadata
-  notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   // Relations
-  participants    MatchParticipant[]
-  ratingChanges   RatingHistory[]
-  
-  @@map("matches")
+  participants  MatchParticipant[]
+  ratingChanges RatingHistory[]
+
   @@index([matchDate])
   @@index([status])
   @@index([winnerId])
+  @@index([challongeMatchId])
+  @@map("matches")
 }
 
 model MatchParticipant {
-  id              String   @id @default(cuid())
-  matchId         String   @map("match_id")
-  userId          String   @map("user_id")
-  
+  id      String @id @default(cuid())
+  matchId String @map("match_id")
+  userId  String @map("user_id")
+
   // Result
-  isWinner        Boolean? @map("is_winner")
-  score           String?  // Individual score if applicable
-  
+  isWinner Boolean? @map("is_winner")
+  score    String? // Individual score if applicable
+
   // Rating change from this match
-  ratingBefore    Int      @map("rating_before")
-  ratingAfter     Int      @map("rating_after")
-  ratingChange    Int      @map("rating_change")
-  
+  ratingBefore Int @map("rating_before")
+  ratingAfter  Int @map("rating_after")
+  ratingChange Int @map("rating_change")
+
   // Relations
-  match           Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("match_participants")
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
   @@index([matchId])
   @@index([userId])
-  @@unique([matchId, userId])
+  @@map("match_participants")
 }
 
 enum MatchType {
@@ -545,3 +552,219 @@ enum MatchStatus {
 //   CANCELLED
 // }
 
+// ============================================
+// TOURNAMENT SYSTEM
+// ============================================
+
+model Tournament {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  game        String   @default("TABLE_TENNIS")
+
+  // Tournament Type
+  gameType TournamentGameType @map("game_type") // SINGLE_STAGE | TWO_STAGES
+
+  // Tournament Status
+  status TournamentStatus @default(PENDING)
+
+  // Registration
+  registrationStartTime DateTime? @map("registration_start_time")
+  isTentative           Boolean   @default(false) @map("is_tentative")
+
+  // Configuration stored as JSON
+  singleStageConfig Json? @map("single_stage_config")
+  twoStagesConfig   Json? @map("two_stages_config")
+
+  // Participants Lock State
+  participantsLocked Boolean @default(false) @map("participants_locked")
+
+  // Challonge Integration
+  challongeId       String?   @unique @map("challonge_id")
+  challongeUrl      String?   @map("challonge_url")
+  lastSyncedAt      DateTime? @map("last_synced_at")
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  participants TournamentParticipant[]
+  groups       TournamentGroup[]
+  matches      TournamentMatch[]
+
+  @@index([status])
+  @@index([gameType])
+  @@index([challongeId])
+  @@map("tournaments")
+}
+
+model TournamentParticipant {
+  id           String @id @default(cuid())
+  tournamentId String @map("tournament_id")
+  userId       String? @map("user_id") // Nullable for virtual participants
+
+  // Virtual Participant Support
+  isVirtual       Boolean @default(false) @map("is_virtual")
+  displayName     String? @map("display_name") // For virtual participants like "Nhất bảng A"
+  advancingSource String? @map("advancing_source") // JSON: {type: 'group', groupId: 'A', rank: 1} or {type: 'match', matchId: 'xxx', position: 'winner'}
+
+  // Seeding
+  seed Int?
+
+  // Group Assignment (for two-stage tournaments)
+  groupId String? @map("group_id")
+
+  // Registration
+  registeredAt DateTime @default(now()) @map("registered_at")
+
+  // Status
+  status ParticipantStatus @default(REGISTERED)
+
+  // Challonge sync
+  challongeParticipantId String? @unique @map("challonge_participant_id")
+
+  // Relations
+  tournament Tournament       @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group      TournamentGroup?  @relation(fields: [groupId], references: [id])
+  matches    TournamentMatchParticipant[]
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+  @@index([groupId])
+  @@index([isVirtual])
+  @@map("tournament_participants")
+}
+
+model TournamentGroup {
+  id           String @id @default(cuid())
+  tournamentId String @map("tournament_id")
+
+  name        String // "Group A", "Group B", etc.
+  displayName String @map("display_name") // For display purposes
+
+  // Configuration
+  participantsPerGroup Int @default(4) @map("participants_per_group")
+  participantsAdvancing Int @default(2) @map("participants_advancing")
+
+  // Status
+  status GroupStatus @default(PENDING)
+
+  // Relations
+  tournament   Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  participants TournamentParticipant[]
+  matches      TournamentMatch[]
+
+  @@index([tournamentId])
+  @@map("tournament_groups")
+}
+
+model TournamentMatch {
+  id           String @id @default(cuid())
+  tournamentId String @map("tournament_id")
+  groupId      String? @map("group_id") // null for final stage matches
+
+  // Match Info
+  stage      TournamentStage // GROUP | FINAL
+  round      Int             // 1, 2, 3... or negative for losers bracket
+  matchNumber Int           @map("match_number") // Position in round
+
+  // Bracket Position (for single elimination)
+  bracketPosition Int? @map("bracket_position")
+
+  // Match Details
+  matchDate   DateTime? @map("match_date")
+  courtNumber String?   @map("court_number")
+
+  // Status
+  status MatchStatus @default(SCHEDULED)
+
+  // Results
+  winnerId   String? @map("winner_id")
+  finalScore String? @map("final_score") // "3-1" or "11-9,11-7,9-11,11-8"
+
+  // Game Scores (stored as JSON array)
+  gameScores Json? @map("game_scores")
+
+  // Placement Match
+  isPlacementMatch Boolean @default(false) @map("is_placement_match")
+  placementRank    Int?    @map("placement_rank") // 3 for 3rd place match
+
+  // Challonge sync
+  challongeMatchId String?   @unique @map("challonge_match_id")
+  challongeRound   Int?      @map("challonge_round")
+  lastSyncedAt     DateTime? @map("last_synced_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tournament   Tournament                   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group        TournamentGroup?             @relation(fields: [groupId], references: [id])
+  participants TournamentMatchParticipant[]
+
+  @@index([tournamentId])
+  @@index([groupId])
+  @@index([status])
+  @@index([stage])
+  @@index([winnerId])
+  @@map("tournament_matches")
+}
+
+model TournamentMatchParticipant {
+  id        String @id @default(cuid())
+  matchId   String @map("match_id")
+  participantId String @map("participant_id")
+
+  // Position in match (1 or 2)
+  position Int
+
+  // Result
+  isWinner Boolean? @map("is_winner")
+  score    String?  // Individual game scores if needed
+
+  // Relations
+  match       TournamentMatch       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  participant TournamentParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, participantId])
+  @@index([matchId])
+  @@index([participantId])
+  @@map("tournament_match_participants")
+}
+
+// Enums
+enum TournamentGameType {
+  SINGLE_STAGE
+  TWO_STAGES
+}
+
+enum TournamentStatus {
+  DRAFT        // Initial state, editing
+  PENDING      // Published, open for registration
+  IN_PROGRESS  // Tournament started
+  COMPLETED    // Tournament finished
+  CANCELLED    // Tournament cancelled
+}
+
+enum ParticipantStatus {
+  REGISTERED   // Successfully registered
+  CHECKED_IN   // Checked in on tournament day
+  WITHDRAWN    // Withdrawn from tournament
+  DISQUALIFIED // Disqualified
+}
+
+enum GroupStatus {
+  PENDING      // Not started
+  IN_PROGRESS  // Matches ongoing
+  COMPLETED    // All matches done
+}
+
+enum TournamentStage {
+  GROUP  // Group stage (for two-stage)
+  FINAL  // Final stage (single elim or main bracket)
+}

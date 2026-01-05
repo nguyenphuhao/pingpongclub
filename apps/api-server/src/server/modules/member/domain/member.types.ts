@@ -18,6 +18,7 @@ export interface MemberPublicDto {
   displayName: string | null;
   avatar: string | null;
   ratingPoints: number | null; // Null if showRating is false
+  currentRank: PlayerRank; // Current player rank based on rating and experience
   totalMatches: number;
   winRate: number | null;
   tags: string[];
@@ -70,6 +71,8 @@ export interface MemberWithStats extends User {
     maxPoints: number | null;
   };
   yearsPlaying?: number | null;
+  ratingHistory?: any[]; // Rating history records
+  recentMatches?: any[]; // Recent match participation records
 }
 
 export interface PaginatedResponse<T> {

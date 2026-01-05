@@ -1,0 +1,2159 @@
+{
+  "info": {
+    "name": "PingClub - Admin API",
+    "_postman_id": "pingclub-admin-api-collection",
+    "description": "Complete API collection for PingClub admin portal including authentication, member management, and tournament system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tournamentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "participantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "groupId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "matchId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Admin - Authentication",
+      "description": "Admin authentication APIs",
+      "item": [
+        {
+          "name": "1. Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('adminToken', response.data.token);",
+                  "        console.log('Admin token saved:', response.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "auth", "login"]
+            },
+            "description": "Authenticate admin with username and password. Returns access token that should be used in subsequent requests."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Current Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "auth", "me"]
+            },
+            "description": "Get authenticated admin user information including profile details and role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Members",
+      "description": "Member management APIs for administrators",
+      "item": [
+        {
+          "name": "1. List All Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Search by name, nickname, email, or phone"
+                },
+                {
+                  "key": "rank",
+                  "value": "A",
+                  "disabled": true,
+                  "description": "Filter by rank: A_STAR, A, B, C, D, E, F, G, H, UNRANKED"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "disabled": true,
+                  "description": "Filter by status: ACTIVE, INACTIVE, SUSPENDED, DELETED"
+                },
+                {
+                  "key": "gender",
+                  "value": "MALE",
+                  "disabled": true,
+                  "description": "Filter by gender: MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY"
+                },
+                {
+                  "key": "minRating",
+                  "value": "1000",
+                  "disabled": true,
+                  "description": "Minimum rating filter"
+                },
+                {
+                  "key": "maxRating",
+                  "value": "2000",
+                  "disabled": true,
+                  "description": "Maximum rating filter"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field: name, rating, winRate, totalMatches, createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order: asc, desc"
+                }
+              ]
+            },
+            "description": "Get paginated list of all club members with comprehensive filtering and sorting options."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('memberId', response.data.id);",
+                  "        console.log('Member ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"nickname\": \"JohnD\",\n  \"displayName\": \"John Doe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"gender\": \"MALE\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"initialRating\": 1200,\n  \"startedPlayingAt\": \"2020-06-01T00:00:00Z\",\n  \"tags\": [\"beginner\", \"enthusiast\"],\n  \"playStyle\": \"Defensive\",\n  \"bio\": \"Passionate table tennis player\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"]
+            },
+            "description": "Create a new club member with initial profile and rating information."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Member Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members", "statistics"]
+            },
+            "description": "Get comprehensive statistics about club members including total counts, rank distribution, and gender distribution."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Member by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members", "{{memberId}}"]
+            },
+            "description": "Get detailed information about a specific member including full profile and statistics."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Update Member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"John Doe Jr.\",\n  \"phone\": \"+1234567891\",\n  \"tags\": [\"intermediate\", \"competitive\"],\n  \"playStyle\": \"All-around\",\n  \"bio\": \"Updated bio\",\n  \"adminNotes\": \"Shows great improvement\",\n  \"status\": \"ACTIVE\",\n  \"profileVisibility\": \"PUBLIC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members", "{{memberId}}"]
+            },
+            "description": "Update member profile with admin privileges. Admins can edit all fields including status and admin notes."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Delete Member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members", "{{memberId}}"]
+            },
+            "description": "Soft delete a member. The member data remains in database but marked as deleted."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examples - Member Filters",
+      "description": "Example requests demonstrating member filtering and search options",
+      "item": [
+        {
+          "name": "Search Members by Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?search=John",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "John",
+                  "description": "Search by name, nickname, email, or phone"
+                }
+              ]
+            },
+            "description": "Search members by name, nickname, email, or phone number."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Rank - A",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?rank=A",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "rank",
+                  "value": "A",
+                  "description": "Filter by rank A"
+                }
+              ]
+            },
+            "description": "Get all members with rank A."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status - ACTIVE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "Get only active members"
+                }
+              ]
+            },
+            "description": "Get all active members."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Gender - MALE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?gender=MALE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "gender",
+                  "value": "MALE",
+                  "description": "Filter by male gender"
+                }
+              ]
+            },
+            "description": "Get all male members."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Rating Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?minRating=1200&maxRating=1800",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "minRating",
+                  "value": "1200",
+                  "description": "Minimum rating"
+                },
+                {
+                  "key": "maxRating",
+                  "value": "1800",
+                  "description": "Maximum rating"
+                }
+              ]
+            },
+            "description": "Get members with rating between 1200 and 1800."
+          },
+          "response": []
+        },
+        {
+          "name": "Sort by Rating (Descending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?sortBy=rating&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "rating",
+                  "description": "Sort by rating"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Descending order (highest first)"
+                }
+              ]
+            },
+            "description": "Get all members sorted by rating in descending order (highest rated first)."
+          },
+          "response": []
+        },
+        {
+          "name": "Sort by Win Rate (Descending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?sortBy=winRate&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "winRate",
+                  "description": "Sort by win rate"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Descending order (highest win rate first)"
+                }
+              ]
+            },
+            "description": "Get all members sorted by win rate in descending order."
+          },
+          "response": []
+        },
+        {
+          "name": "Combined Filters - ACTIVE + Rank A + Rating",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/members?status=ACTIVE&rank=A&minRating=1500&sortBy=rating&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "members"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "Active members only"
+                },
+                {
+                  "key": "rank",
+                  "value": "A",
+                  "description": "Rank A only"
+                },
+                {
+                  "key": "minRating",
+                  "value": "1500",
+                  "description": "Minimum rating 1500"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating",
+                  "description": "Sort by rating"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Descending order"
+                }
+              ]
+            },
+            "description": "Example of combining multiple filters: Get active rank A members with rating >= 1500, sorted by rating."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Tournaments",
+      "description": "Complete set of tournament management APIs for administrators",
+      "item": [
+        {
+          "name": "1. Create Tournament (Single Stage - Single Elimination)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('tournamentId', response.data.id);",
+                  "        console.log('Tournament ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Championship 2026 - Single Elimination\",\n  \"description\": \"Annual championship tournament with single elimination format\",\n  \"game\": \"TABLE_TENNIS\",\n  \"gameType\": \"SINGLE_STAGE\",\n  \"registrationStartTime\": \"2026-01-15T10:00:00Z\",\n  \"isTentative\": false,\n  \"singleStageConfig\": {\n    \"format\": \"SINGLE_ELIMINATION\",\n    \"singleEliminationConfig\": {\n      \"hasPlacementMatches\": true\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"]
+            },
+            "description": "Create a new single-stage tournament with single elimination format. Placement matches are enabled to determine 3rd and 4th place."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Tournament (Single Stage - Round Robin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('tournamentId', response.data.id);",
+                  "        console.log('Tournament ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Spring League 2026 - Round Robin\",\n  \"description\": \"Spring season league with round robin format\",\n  \"game\": \"TABLE_TENNIS\",\n  \"gameType\": \"SINGLE_STAGE\",\n  \"registrationStartTime\": \"2026-02-01T10:00:00Z\",\n  \"isTentative\": true,\n  \"singleStageConfig\": {\n    \"format\": \"ROUND_ROBIN\",\n    \"roundRobinConfig\": {\n      \"matchupsPerPair\": 1,\n      \"rankBy\": \"MATCH_WINS\",\n      \"placementMethod\": \"PARTICIPANT_LIST_ORDER\",\n      \"tieBreaks\": [\n        \"WINS_VS_TIED\",\n        \"GAME_SET_DIFFERENCE\",\n        \"POINTS_DIFFERENCE\"\n      ]\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"]
+            },
+            "description": "Create a new single-stage tournament with round robin format. Each pair plays once, ranked by match wins with comprehensive tie-break rules."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Tournament (Two Stages)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('tournamentId', response.data.id);",
+                  "        console.log('Tournament ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Cup 2026 - Two Stages\",\n  \"description\": \"Summer tournament with group stage and knockout finals\",\n  \"game\": \"TABLE_TENNIS\",\n  \"gameType\": \"TWO_STAGES\",\n  \"registrationStartTime\": \"2026-06-01T10:00:00Z\",\n  \"isTentative\": false,\n  \"twoStagesConfig\": {\n    \"groupStage\": {\n      \"format\": \"ROUND_ROBIN\",\n      \"participantsPerGroup\": 4,\n      \"participantsAdvancing\": 2,\n      \"matchupsPerPair\": 1,\n      \"rankBy\": \"MATCH_WINS\",\n      \"placementMethod\": \"PARTICIPANT_LIST_ORDER\",\n      \"tieBreaks\": [\n        \"WINS_VS_TIED\",\n        \"GAME_SET_DIFFERENCE\",\n        \"POINTS_DIFFERENCE\"\n      ]\n    },\n    \"finalStage\": {\n      \"format\": \"SINGLE_ELIMINATION\",\n      \"hasPlacementMatches\": true\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"]
+            },
+            "description": "Create a two-stage tournament with group stage (round robin) and final stage (single elimination). Top 2 from each group advance to knockout rounds."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get All Tournaments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "DRAFT",
+                  "disabled": true,
+                  "description": "Filter by status: DRAFT, PENDING, IN_PROGRESS, COMPLETED, CANCELLED"
+                },
+                {
+                  "key": "gameType",
+                  "value": "SINGLE_STAGE",
+                  "disabled": true,
+                  "description": "Filter by game type: SINGLE_STAGE, TWO_STAGES"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field: createdAt, updatedAt, name, registrationStartTime"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order: asc, desc"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments with pagination and filtering options. Supports filtering by status and gameType, with flexible sorting."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get Tournament by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}"]
+            },
+            "description": "Get detailed information about a specific tournament by its ID. Returns full tournament configuration, status, and counts of participants and matches."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Update Tournament",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Championship 2026 - Updated\",\n  \"description\": \"Updated description for the tournament\",\n  \"registrationStartTime\": \"2026-01-20T10:00:00Z\",\n  \"isTentative\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}"]
+            },
+            "description": "Update tournament details and configuration. Cannot update completed or cancelled tournaments. All fields are optional - only provided fields will be updated."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Delete Tournament",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}"]
+            },
+            "description": "Soft delete a tournament. The tournament will be marked as deleted but data remains in the database. Only admins can delete tournaments."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examples - Filter Tournaments",
+      "description": "Example requests demonstrating various filtering and querying options",
+      "item": [
+        {
+          "name": "Filter by Status - DRAFT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=DRAFT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "DRAFT",
+                  "description": "Get only draft tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments in DRAFT status. These are tournaments that haven't been published yet."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status - PENDING",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Get only pending tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments in PENDING status. These tournaments are published and waiting to start."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status - IN_PROGRESS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=IN_PROGRESS",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "IN_PROGRESS",
+                  "description": "Get only in-progress tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments currently in progress with active matches."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status - COMPLETED",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=COMPLETED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "COMPLETED",
+                  "description": "Get only completed tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments that have finished."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status - CANCELLED",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=CANCELLED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CANCELLED",
+                  "description": "Get only cancelled tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all tournaments that have been cancelled."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Game Type - SINGLE_STAGE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?gameType=SINGLE_STAGE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "gameType",
+                  "value": "SINGLE_STAGE",
+                  "description": "Get only single-stage tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all single-stage tournaments (either single elimination or round robin format)."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Game Type - TWO_STAGES",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?gameType=TWO_STAGES",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "gameType",
+                  "value": "TWO_STAGES",
+                  "description": "Get only two-stage tournaments"
+                }
+              ]
+            },
+            "description": "Retrieve all two-stage tournaments with group stage and final stage."
+          },
+          "response": []
+        },
+        {
+          "name": "Combined Filters - PENDING + SINGLE_STAGE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?status=PENDING&gameType=SINGLE_STAGE&sortBy=registrationStartTime&sortOrder=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Filter by status"
+                },
+                {
+                  "key": "gameType",
+                  "value": "SINGLE_STAGE",
+                  "description": "Filter by game type"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "registrationStartTime",
+                  "description": "Sort by registration start time"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending order (earliest first)"
+                }
+              ]
+            },
+            "description": "Example of combining multiple filters: Get pending single-stage tournaments sorted by registration start time in ascending order."
+          },
+          "response": []
+        },
+        {
+          "name": "Sort by Name (Ascending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?sortBy=name&sortOrder=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "name",
+                  "description": "Sort by tournament name"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending order (A to Z)"
+                }
+              ]
+            },
+            "description": "Get all tournaments sorted alphabetically by name."
+          },
+          "response": []
+        },
+        {
+          "name": "Pagination - Page 2 with 10 items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments?page=2&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2",
+                  "description": "Get second page"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "10 items per page"
+                }
+              ]
+            },
+            "description": "Example of pagination: Get the second page of results with 10 tournaments per page."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Tournament Participants",
+      "description": "Participant management APIs for tournaments",
+      "item": [
+        {
+          "name": "1. Add Participant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.collectionVariables.set('participantId', response.id);",
+                  "        console.log('Participant ID saved:', response.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user-uuid-here\",\n  \"seed\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants"]
+            },
+            "description": "Add a single participant to a tournament. Cannot add participants if the tournament is locked."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get All Participants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Items per page (default: 50)"
+                }
+              ]
+            },
+            "description": "List all participants in a tournament with pagination. Results are ordered by seed (if set) then by creation date."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Update Participant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": 2,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants/{{participantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants", "{{participantId}}"]
+            },
+            "description": "Update a participant's seed, group, or status. Can only update seed/group if participants are not locked. Status can always be updated."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Remove Participant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants/{{participantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants", "{{participantId}}"]
+            },
+            "description": "Remove a participant from a tournament. Cannot remove participants if the tournament is locked."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Bulk Import Participants",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [\n    {\n      \"userId\": \"user-uuid-1\",\n      \"seed\": 1\n    },\n    {\n      \"userId\": \"user-uuid-2\",\n      \"seed\": 2\n    },\n    {\n      \"userId\": \"user-uuid-3\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants/bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants", "bulk"]
+            },
+            "description": "Bulk import multiple participants at once. Returns summary with success/failure counts and detailed errors for any failed imports. Cannot import if tournament is locked."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Lock Participants",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/participants/lock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "participants", "lock"]
+            },
+            "description": "Lock the participants list to prevent further additions or removals. This is required before starting a tournament. Cannot lock if tournament has no participants."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Tournament Groups",
+      "description": "Group management APIs for TWO_STAGES tournaments",
+      "item": [
+        {
+          "name": "0. Auto-Generate Groups (Recommended)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.groups && response.data.groups.length > 0) {",
+                  "        pm.collectionVariables.set('groupId', response.data.groups[0].id);",
+                  "        console.log('First Group ID saved:', response.data.groups[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfGroups\": 4,\n  \"participantsAdvancing\": 2,\n  \"groupNamePrefix\": \"Group\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/auto-generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "auto-generate"]
+            },
+            "description": "Automatically create groups and assign participants based on seeding order. Uses STRAIGHT seeding: seeds 1-4 → Group A, 5-8 → Group B, etc. Tournament participants must be locked. Provide either numberOfGroups OR participantsPerGroup (not both)."
+          },
+          "response": []
+        },
+        {
+          "name": "1. Create Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('groupId', response.data.id);",
+                  "        console.log('Group ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"displayName\": \"Group A\",\n  \"participantsPerGroup\": 4,\n  \"participantsAdvancing\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups"]
+            },
+            "description": "Create a new group for TWO_STAGES tournament. Tournament must be in DRAFT or PENDING status. participantsPerGroup must be between 2-20, and participantsAdvancing must be less than participantsPerGroup."
+          },
+          "response": []
+        },
+        {
+          "name": "2. List All Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups?page=1&limit=20&status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true,
+                  "description": "Filter by status: PENDING, IN_PROGRESS, COMPLETED"
+                }
+              ]
+            },
+            "description": "List all groups in a tournament with pagination. Optionally filter by status. Returns participant and match counts for each group."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Group by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}"]
+            },
+            "description": "Get detailed information about a specific group including configuration, status, and counts of participants and matches."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Update Group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Group A - Updated\",\n  \"participantsPerGroup\": 6,\n  \"participantsAdvancing\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}"]
+            },
+            "description": "Update group configuration. Can only update if group status is PENDING. If reducing participantsPerGroup, cannot be less than current participant count."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Delete Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}"]
+            },
+            "description": "Delete a group. Can only delete if group has no matches. All participants in the group will have their groupId set to null."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Add Participant to Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"{{participantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}", "participants"]
+            },
+            "description": "Add a participant to a group. Tournament participants must be locked, group status must be PENDING, participant must not be in another group, and group must not be full."
+          },
+          "response": []
+        },
+        {
+          "name": "7. List Group Participants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}/participants?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}", "participants"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
+              ]
+            },
+            "description": "List all participants in a group with pagination. Includes full user details for each participant."
+          },
+          "response": []
+        },
+        {
+          "name": "8. Remove Participant from Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}/participants/{{participantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}", "participants", "{{participantId}}"]
+            },
+            "description": "Remove a participant from a group. Can only remove if group status is PENDING (before matches are generated)."
+          },
+          "response": []
+        },
+        {
+          "name": "9. Generate Round Robin Matches (DEPRECATED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matchupsPerPair\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}/generate-matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}", "generate-matches"]
+            },
+            "description": "⚠️ DEPRECATED - Use POST /tournaments/:id/matches/generate with stage='GROUP' and groupId instead.\n\nGenerate round robin matches for the group. Tournament participants must be locked, group status must be PENDING, and group must have at least 2 participants. matchupsPerPair defaults to 1 (each pair plays once).\n\nResponse includes X-Deprecated header."
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get Group Standings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups/{{groupId}}/standings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups", "{{groupId}}", "standings"]
+            },
+            "description": "Get group standings with tie breaks applied. Returns rankings, match/game/points records, tie break information, and isAdvancing flag for each participant."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examples - Group Workflows",
+      "description": "Example workflows demonstrating complete group stage management",
+      "item": [
+        {
+          "name": "Filter Groups by Status - PENDING",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups?status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Get only pending groups"
+                }
+              ]
+            },
+            "description": "Get all groups in PENDING status - ready for participant assignment but not yet started."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Groups by Status - IN_PROGRESS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups?status=IN_PROGRESS",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "IN_PROGRESS",
+                  "description": "Get only in-progress groups"
+                }
+              ]
+            },
+            "description": "Get all groups currently in progress with active matches."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Groups by Status - COMPLETED",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/groups?status=COMPLETED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "groups"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "COMPLETED",
+                  "description": "Get only completed groups"
+                }
+              ]
+            },
+            "description": "Get all groups that have finished all matches."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Tournament Matches (Unified)",
+      "description": "⭐ RECOMMENDED unified match generation endpoint for both bracket and group stages",
+      "item": [
+        {
+          "name": "1. Generate Matches - FINAL Stage (Bracket)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stage\": \"FINAL\",\n  \"includeThirdPlaceMatch\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "generate"]
+            },
+            "description": "⭐ UNIFIED ENDPOINT - Generate bracket matches for FINAL stage. Creates all rounds from first round to final with virtual participants for rounds 2+. For TWO_STAGES tournaments, generates final stage bracket from group winners. Tournament participants must be locked.\n\nThis endpoint replaces:\n- POST /tournaments/:id/bracket/generate (deprecated)"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Generate Matches - GROUP Stage (Round Robin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stage\": \"GROUP\",\n  \"groupId\": \"{{groupId}}\",\n  \"matchupsPerPair\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "generate"]
+            },
+            "description": "⭐ UNIFIED ENDPOINT - Generate round robin matches for GROUP stage. Tournament participants must be locked, group status must be PENDING, and group must have at least 2 participants. matchupsPerPair defaults to 1 (each pair plays once).\n\nThis endpoint replaces:\n- POST /tournaments/:id/groups/:gid/generate-matches (deprecated)"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get All Matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "stage",
+                  "value": "FINAL",
+                  "disabled": true,
+                  "description": "Filter by stage: FINAL or GROUP"
+                },
+                {
+                  "key": "groupId",
+                  "value": "{{groupId}}",
+                  "disabled": true,
+                  "description": "Filter by specific group ID"
+                },
+                {
+                  "key": "status",
+                  "value": "SCHEDULED",
+                  "disabled": true,
+                  "description": "Filter by status: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED"
+                },
+                {
+                  "key": "round",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Filter by round number"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Items per page (default: 50)"
+                }
+              ]
+            },
+            "description": "Get all matches for a tournament with flexible filtering. Supports filtering by stage (FINAL/GROUP), groupId, status, and round number. Returns paginated results with full participant details including virtual participants."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Single Match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('matchId', response.data.id);",
+                  "        console.log('Match ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "{{matchId}}"]
+            },
+            "description": "Get detailed information for a specific match including full participant details, scores, and game details."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Update Match Details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matchDate\": \"2024-01-15T14:30:00Z\",\n  \"courtNumber\": \"Court 1\",\n  \"participants\": [\n    {\n      \"participantId\": \"participant-id-1\",\n      \"position\": 1\n    },\n    {\n      \"participantId\": \"participant-id-2\",\n      \"position\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "{{matchId}}"]
+            },
+            "description": "Update match details and/or participants. Useful for:\n- **Scheduling**: Set matchDate and courtNumber\n- **Swap participants**: Change matchup between players\n- **Fix mistakes**: Correct wrong participant assignments\n\n**What you can update:**\n- matchDate: Schedule when the match will be played (ISO 8601 format)\n- courtNumber: Assign court/table number\n- participants: Swap/change the matchup (provide both participants with positions 1 and 2)\n\n**Restrictions:**\n- Cannot update COMPLETED matches\n- Participants must belong to the tournament\n- For GROUP stage: Participants must belong to the same group\n- Admin only\n\n**Partial updates supported:**\n- Can update only matchDate/courtNumber without changing participants\n- Can update only participants without changing schedule\n- Can update all fields at once\n\n**Example bodies:**\n\n1. Schedule only:\n```json\n{\n  \"matchDate\": \"2024-01-15T14:30:00Z\",\n  \"courtNumber\": \"Court 1\"\n}\n```\n\n2. Swap participants only:\n```json\n{\n  \"participants\": [\n    { \"participantId\": \"new-player-1-id\", \"position\": 1 },\n    { \"participantId\": \"new-player-2-id\", \"position\": 2 }\n  ]\n}\n```\n\n3. Full update (both schedule and participants):\n```json\n{\n  \"matchDate\": \"2024-01-15T14:30:00Z\",\n  \"courtNumber\": \"Court 1\",\n  \"participants\": [\n    { \"participantId\": \"player-1-id\", \"position\": 1 },\n    { \"participantId\": \"player-2-id\", \"position\": 2 }\n  ]\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Delete Single Match",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "{{matchId}}"]
+            },
+            "description": "Delete a specific match from the tournament. Useful for:\n- Removing incorrectly created matches\n- Fixing manual match generation errors\n- Cleaning up unwanted matches\n\n**Safety checks:**\n- Cannot delete COMPLETED matches (preserves history)\n- Admin only\n- Deletes in transaction (all or nothing)\n\n**What gets deleted:**\n- The match record\n- All match participants (join table records)\n\n**What remains:**\n- Tournament participants (not removed from tournament)\n- Other matches\n- Virtual participants (might be used by other matches)"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Match Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches", "stats"]
+            },
+            "description": "Get statistical overview of matches in a tournament. Returns total count, breakdown by stage (FINAL/GROUP), and breakdown by status (SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED)."
+          },
+          "response": []
+        },
+        {
+          "name": "8. Delete All Matches",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"]
+            },
+            "description": "⚠️ DANGER: Delete all matches for a tournament. This is useful for:\n- Regenerating bracket/group matches from scratch\n- Resetting tournament structure\n- Fixing incorrect match generation\n\n**Safety checks:**\n- Only ADMIN can delete\n- Cannot delete if any matches are COMPLETED\n- Deletes in transaction (all or nothing)\n- Also removes virtual participants\n\n**What gets deleted:**\n- All matches (SCHEDULED, IN_PROGRESS, CANCELLED)\n- All match participants\n- All virtual participants (placeholders)\n\n**What remains:**\n- Tournament configuration\n- Real participants (users)\n- Groups structure"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examples - Match Filters",
+      "description": "Example requests demonstrating match filtering options",
+      "item": [
+        {
+          "name": "Get Bracket Matches (FINAL Stage)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?stage=FINAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "stage",
+                  "value": "FINAL",
+                  "description": "Get only bracket matches"
+                }
+              ]
+            },
+            "description": "Get all bracket matches (FINAL stage) for single elimination tournaments."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Group Matches (GROUP Stage)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?stage=GROUP",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "stage",
+                  "value": "GROUP",
+                  "description": "Get only group stage matches"
+                }
+              ]
+            },
+            "description": "Get all group stage matches (round robin) for TWO_STAGES tournaments."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Matches for Specific Group",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?groupId={{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "groupId",
+                  "value": "{{groupId}}",
+                  "description": "Filter by specific group"
+                }
+              ]
+            },
+            "description": "Get all matches for a specific group."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Scheduled Matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?status=SCHEDULED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SCHEDULED",
+                  "description": "Get only scheduled matches"
+                }
+              ]
+            },
+            "description": "Get all scheduled matches that are ready to be played."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Round 1 Matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?round=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "round",
+                  "value": "1",
+                  "description": "Filter by round number"
+                }
+              ]
+            },
+            "description": "Get all first round matches."
+          },
+          "response": []
+        },
+        {
+          "name": "Combined Filters - FINAL Stage + Scheduled + Round 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/matches?stage=FINAL&status=SCHEDULED&round=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "matches"],
+              "query": [
+                {
+                  "key": "stage",
+                  "value": "FINAL",
+                  "description": "Bracket matches only"
+                },
+                {
+                  "key": "status",
+                  "value": "SCHEDULED",
+                  "description": "Scheduled matches only"
+                },
+                {
+                  "key": "round",
+                  "value": "1",
+                  "description": "First round only"
+                }
+              ]
+            },
+            "description": "Example of combining multiple filters: Get all scheduled first-round bracket matches."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Tournament Bracket",
+      "description": "⚠️ DEPRECATED - Use 'Admin - Tournament Matches (Unified)' instead. Bracket generation and visualization APIs compatible with @g-loot/react-tournament-brackets",
+      "item": [
+        {
+          "name": "1. Generate Bracket (DEPRECATED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"includeThirdPlaceMatch\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/bracket/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "bracket", "generate"]
+            },
+            "description": "⚠️ DEPRECATED - Use POST /tournaments/:id/matches/generate with stage='FINAL' instead.\n\nAuto-generate bracket matches for SINGLE_ELIMINATION tournament. Creates all rounds from first round to final. For TWO_STAGES, generates final stage bracket from group winners. Tournament participants must be locked.\n\nResponse includes X-Deprecated header."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Bracket Structure",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tournaments/{{tournamentId}}/bracket",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "tournaments", "{{tournamentId}}", "bracket"]
+            },
+            "description": "Get bracket structure formatted for @g-loot/react-tournament-brackets. Returns flat array of all matches with nextMatchId links for tree visualization. Response format is directly compatible with React bracket components."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
