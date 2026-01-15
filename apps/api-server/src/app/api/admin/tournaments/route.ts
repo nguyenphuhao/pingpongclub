@@ -1,16 +1,16 @@
 /**
  * Admin Tournament API Routes
  *
- * GET /api/admin/tournaments - List all tournaments
- * POST /api/admin/tournaments - Create new tournament
+ * GET /api/admin/tournaments - List tournaments
+ * POST /api/admin/tournaments - Create tournament
  */
 
 import { NextRequest } from 'next/server';
 import { TournamentService } from '@/server/modules/tournament/application/tournament.service';
 import { getCurrentAdminFromRequest } from '@/server/http/middleware/admin.middleware';
 import { successResponse, errorResponse } from '@/server/http/utils/response.helper';
-import { TournamentGameType } from '@prisma/client';
-import { CreateTournamentDto } from '@/server/modules/tournament/domain/tournament.types';
+import { validateBody, validateQuery } from '@/server/http/utils/validation.helper';
+import { CreateTournamentDtoSchema, QueryTournamentsDtoSchema } from '@/shared/dtos';
 
 const tournamentService = new TournamentService();
 
@@ -20,21 +20,11 @@ const tournamentService = new TournamentService();
  *   get:
  *     tags:
  *       - Admin - Tournaments
- *     summary: Get all tournaments (Admin)
- *     description: Get list of all tournaments with pagination and filters
+ *     summary: Danh sach giai dau (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien xem danh sach giai dau.'
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [DRAFT, PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
- *       - in: query
- *         name: gameType
- *         schema:
- *           type: string
- *           enum: [SINGLE_STAGE, TWO_STAGES]
  *       - in: query
  *         name: page
  *         schema:
@@ -46,13 +36,18 @@ const tournamentService = new TournamentService();
  *           type: integer
  *           default: 20
  *       - in: query
- *         name: sortBy
+ *         name: search
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, name, registrationStartTime]
+ *         description: Tim theo ten hoac mo ta (>= 2 ky tu)
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, name]
  *           default: createdAt
  *       - in: query
- *         name: sortOrder
+ *         name: order
  *         schema:
  *           type: string
  *           enum: [asc, desc]
@@ -60,6 +55,39 @@ const tournamentService = new TournamentService();
  *     responses:
  *       200:
  *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                         nullable: true
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
  *       401:
  *         description: Unauthorized
  *       403:
@@ -67,32 +95,14 @@ const tournamentService = new TournamentService();
  */
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate admin
-    const currentAdmin = await getCurrentAdminFromRequest(request);
+    await getCurrentAdminFromRequest(request);
 
-    // Parse query parameters
-    const { searchParams } = new URL(request.url);
-    const query = {
-      status: searchParams.get('status') as any,
-      gameType: searchParams.get('gameType') as any,
-      page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : undefined,
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined,
-      sortBy: searchParams.get('sortBy') as any,
-      sortOrder: searchParams.get('sortOrder') as any,
-    };
+    const rawQuery = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const query = validateQuery(QueryTournamentsDtoSchema, rawQuery);
 
-    // Build request context
-    const ctx = {
-      user: {
-        id: currentAdmin.id,
-        role: 'ADMIN' as const,
-      },
-    };
+    const result = await tournamentService.getTournaments(query);
 
-    // Get tournaments
-    const result = await tournamentService.getTournaments(query, ctx);
-
-    return successResponse(result);
+    return successResponse(result.data, 200, result.pagination);
   } catch (error: any) {
     return errorResponse(error);
   }
@@ -104,8 +114,8 @@ export async function GET(request: NextRequest) {
  *   post:
  *     tags:
  *       - Admin - Tournaments
- *     summary: Create new tournament (Admin)
- *     description: Create a new tournament with configuration
+ *     summary: Tao giai dau (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien tao giai dau moi.'
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -116,97 +126,21 @@ export async function GET(request: NextRequest) {
  *             type: object
  *             required:
  *               - name
- *               - gameType
+ *               - matchFormat
  *             properties:
  *               name:
  *                 type: string
- *                 example: Championship 2026
  *               description:
  *                 type: string
- *                 example: Annual championship tournament
- *               game:
+ *                 nullable: true
+ *               matchFormat:
  *                 type: string
- *                 default: TABLE_TENNIS
- *               gameType:
- *                 type: string
- *                 enum: [SINGLE_STAGE, TWO_STAGES]
- *                 example: SINGLE_STAGE
- *               registrationStartTime:
- *                 type: string
- *                 format: date-time
- *                 example: 2026-01-15T10:00:00Z
- *               isTentative:
- *                 type: boolean
- *                 default: false
- *               singleStageConfig:
- *                 type: object
- *                 properties:
- *                   format:
- *                     type: string
- *                     enum: [SINGLE_ELIMINATION, ROUND_ROBIN]
- *                   singleEliminationConfig:
- *                     type: object
- *                     properties:
- *                       hasPlacementMatches:
- *                         type: boolean
- *                   roundRobinConfig:
- *                     type: object
- *                     properties:
- *                       matchupsPerPair:
- *                         type: integer
- *                         default: 1
- *                       rankBy:
- *                         type: string
- *                         enum: [MATCH_WINS, POINTS]
- *                       placementMethod:
- *                         type: string
- *                         enum: [PARTICIPANT_LIST_ORDER, RANDOM, SEEDED]
- *                       tieBreaks:
- *                         type: array
- *                         items:
- *                           type: string
- *                           enum: [WINS_VS_TIED, GAME_SET_DIFFERENCE, POINTS_DIFFERENCE]
- *               twoStagesConfig:
- *                 type: object
- *                 properties:
- *                   groupStage:
- *                     type: object
- *                     properties:
- *                       format:
- *                         type: string
- *                         enum: [ROUND_ROBIN]
- *                       participantsPerGroup:
- *                         type: integer
- *                         default: 4
- *                       participantsAdvancing:
- *                         type: integer
- *                         default: 2
- *                       matchupsPerPair:
- *                         type: integer
- *                         default: 1
- *                       rankBy:
- *                         type: string
- *                         enum: [MATCH_WINS, POINTS]
- *                       placementMethod:
- *                         type: string
- *                         enum: [PARTICIPANT_LIST_ORDER, RANDOM, SEEDED]
- *                       tieBreaks:
- *                         type: array
- *                         items:
- *                           type: string
- *                   finalStage:
- *                     type: object
- *                     properties:
- *                       format:
- *                         type: string
- *                         enum: [SINGLE_ELIMINATION]
- *                       hasPlacementMatches:
- *                         type: boolean
+ *                 enum: [SINGLE, DOUBLES]
  *     responses:
- *       200:
- *         description: Tournament created successfully
+ *       201:
+ *         description: Created
  *       400:
- *         description: Invalid input
+ *         description: Validation error
  *       401:
  *         description: Unauthorized
  *       403:
@@ -214,36 +148,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate admin
-    const currentAdmin = await getCurrentAdminFromRequest(request);
+    await getCurrentAdminFromRequest(request);
 
-    // Parse request body
     const body = await request.json();
+    const dto = await validateBody(CreateTournamentDtoSchema, body);
 
-    // Build DTO
-    const dto: CreateTournamentDto = {
-      name: body.name,
-      description: body.description,
-      game: body.game,
-      gameType: body.gameType as TournamentGameType,
-      registrationStartTime: body.registrationStartTime,
-      isTentative: body.isTentative,
-      singleStageConfig: body.singleStageConfig,
-      twoStagesConfig: body.twoStagesConfig,
-    };
+    const created = await tournamentService.createTournament(dto);
 
-    // Build request context
-    const ctx = {
-      user: {
-        id: currentAdmin.id,
-        role: 'ADMIN' as const,
-      },
-    };
-
-    // Create tournament
-    const tournament = await tournamentService.createTournament(dto, ctx);
-
-    return successResponse(tournament);
+    return successResponse(created, 201);
   } catch (error: any) {
     return errorResponse(error);
   }

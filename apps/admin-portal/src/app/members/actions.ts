@@ -245,4 +245,3 @@ export async function createMember(data: CreateMemberData) {
     throw new Error(error.message || 'Failed to create member');
   }
 }
-

@@ -8,13 +8,7 @@ CREATE TYPE "ProfileVisibility" AS ENUM ('PUBLIC', 'MEMBERS', 'PRIVATE');
 CREATE TYPE "PlayerRank" AS ENUM ('A_STAR', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'UNRANKED');
 
 -- CreateEnum
-CREATE TYPE "RatingChangeReason" AS ENUM ('MATCH_WIN', 'MATCH_LOSS', 'MATCH_DRAW', 'ADMIN_ADJUSTMENT', 'INITIAL_RATING', 'SEASON_RESET', 'TOURNAMENT_BONUS');
-
--- CreateEnum
-CREATE TYPE "MatchType" AS ENUM ('SINGLES', 'DOUBLES', 'TEAM', 'PRACTICE');
-
--- CreateEnum
-CREATE TYPE "MatchStatus" AS ENUM ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "RatingChangeReason" AS ENUM ('MATCH_WIN', 'MATCH_LOSS', 'MATCH_DRAW', 'ADMIN_ADJUSTMENT', 'INITIAL_RATING', 'SEASON_RESET');
 
 -- AlterTable
 ALTER TABLE "users" ADD COLUMN     "admin_notes" TEXT,
@@ -51,43 +45,10 @@ CREATE TABLE "rating_history" (
     "old_rank" "PlayerRank" NOT NULL,
     "new_rank" "PlayerRank" NOT NULL,
     "change_reason" "RatingChangeReason" NOT NULL,
-    "match_id" TEXT,
     "notes" TEXT,
     "changed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "rating_history_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "matches" (
-    "id" TEXT NOT NULL,
-    "matchType" "MatchType" NOT NULL,
-    "match_date" TIMESTAMP(3) NOT NULL,
-    "tournament_id" TEXT,
-    "round" TEXT,
-    "court_number" TEXT,
-    "status" "MatchStatus" NOT NULL DEFAULT 'SCHEDULED',
-    "final_score" TEXT,
-    "winner_id" TEXT,
-    "notes" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "matches_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "match_participants" (
-    "id" TEXT NOT NULL,
-    "match_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
-    "is_winner" BOOLEAN,
-    "score" TEXT,
-    "rating_before" INTEGER NOT NULL,
-    "rating_after" INTEGER NOT NULL,
-    "rating_change" INTEGER NOT NULL,
-
-    CONSTRAINT "match_participants_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -95,27 +56,6 @@ CREATE INDEX "rating_history_user_id_idx" ON "rating_history"("user_id");
 
 -- CreateIndex
 CREATE INDEX "rating_history_changed_at_idx" ON "rating_history"("changed_at");
-
--- CreateIndex
-CREATE INDEX "rating_history_match_id_idx" ON "rating_history"("match_id");
-
--- CreateIndex
-CREATE INDEX "matches_match_date_idx" ON "matches"("match_date");
-
--- CreateIndex
-CREATE INDEX "matches_status_idx" ON "matches"("status");
-
--- CreateIndex
-CREATE INDEX "matches_winner_id_idx" ON "matches"("winner_id");
-
--- CreateIndex
-CREATE INDEX "match_participants_match_id_idx" ON "match_participants"("match_id");
-
--- CreateIndex
-CREATE INDEX "match_participants_user_id_idx" ON "match_participants"("user_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "match_participants_match_id_user_id_key" ON "match_participants"("match_id", "user_id");
 
 -- CreateIndex
 CREATE INDEX "users_rating_points_idx" ON "users"("rating_points");
@@ -128,12 +68,3 @@ CREATE INDEX "users_nickname_idx" ON "users"("nickname");
 
 -- AddForeignKey
 ALTER TABLE "rating_history" ADD CONSTRAINT "rating_history_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "rating_history" ADD CONSTRAINT "rating_history_match_id_fkey" FOREIGN KEY ("match_id") REFERENCES "matches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "match_participants" ADD CONSTRAINT "match_participants_match_id_fkey" FOREIGN KEY ("match_id") REFERENCES "matches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "match_participants" ADD CONSTRAINT "match_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

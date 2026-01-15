@@ -44,6 +44,12 @@ const menuItems = [
         icon: Trophy,
         badge: '🏆',
       },
+      {
+        label: 'Stage Rule Presets',
+        href: '/stage-rule-presets',
+        icon: Trophy,
+        badge: '🧩',
+      },
     ],
   },
 ];
@@ -97,4 +103,3 @@ export function Sidebar() {
     </div>
   );
 }
-

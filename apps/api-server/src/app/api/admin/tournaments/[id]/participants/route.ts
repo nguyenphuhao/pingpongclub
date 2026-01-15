@@ -1,84 +1,30 @@
 /**
- * Tournament Participants API Routes
- * POST   /api/admin/tournaments/:id/participants - Add participant
- * GET    /api/admin/tournaments/:id/participants - List participants
+ * Admin Tournament Participants API Routes
+ *
+ * GET /api/admin/tournaments/:id/participants - List participants
+ * POST /api/admin/tournaments/:id/participants - Create participant
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { TournamentService } from '@/server/modules/tournament/application/tournament.service';
+import { NextRequest } from 'next/server';
+import { TournamentParticipantService } from '@/server/modules/tournament-participant/application/tournament-participant.service';
 import { getCurrentAdminFromRequest } from '@/server/http/middleware/admin.middleware';
+import { successResponse, errorResponse } from '@/server/http/utils/response.helper';
+import { validateBody, validateQuery } from '@/server/http/utils/validation.helper';
+import {
+  CreateTournamentParticipantDtoSchema,
+  QueryTournamentParticipantsDtoSchema,
+} from '@/shared/dtos';
 
-const tournamentService = new TournamentService();
-
-/**
- * @swagger
- * /api/admin/tournaments/{id}/participants:
- *   post:
- *     tags: [Tournament Participants]
- *     summary: Add a participant to tournament
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - userId
- *             properties:
- *               userId:
- *                 type: string
- *               groupId:
- *                 type: string
- *               seed:
- *                 type: integer
- *     responses:
- *       201:
- *         description: Participant added successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Tournament not found
- */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const user = await getCurrentAdminFromRequest(request);
-    const body = await request.json();
-
-    const participant = await tournamentService.addParticipant(
-      params.id,
-      body,
-      { user }
-    );
-
-    return NextResponse.json(participant, { status: 201 });
-  } catch (error) {
-    console.error('Error adding participant:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to add participant' },
-      { status: error instanceof Error && error.message.includes('not found') ? 404 : 400 }
-    );
-  }
-}
+const participantService = new TournamentParticipantService();
 
 /**
  * @swagger
  * /api/admin/tournaments/{id}/participants:
  *   get:
- *     tags: [Tournament Participants]
- *     summary: List tournament participants
+ *     tags:
+ *       - Admin - Tournament Participants
+ *     summary: Danh sach participants (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien xem danh sach participants.'
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -96,38 +42,116 @@ export async function POST(
  *         name: limit
  *         schema:
  *           type: integer
- *           default: 50
+ *           default: 20
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, displayName, seed]
+ *           default: createdAt
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
  *     responses:
  *       200:
- *         description: List of participants
+ *         description: Success
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (admin only)
  *       404:
  *         description: Tournament not found
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const user = await getCurrentAdminFromRequest(request);
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    await getCurrentAdminFromRequest(request);
 
-    const result = await tournamentService.getParticipants(
-      params.id,
-      page,
-      limit,
-      { user }
-    );
+    const rawQuery = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const query = validateQuery(QueryTournamentParticipantsDtoSchema, rawQuery);
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Error fetching participants:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch participants' },
-      { status: error instanceof Error && error.message.includes('not found') ? 404 : 500 }
-    );
+    const result = await participantService.getParticipantsByTournament(params.id, query);
+
+    return successResponse(result.data, 200, result.pagination);
+  } catch (error: any) {
+    return errorResponse(error);
+  }
+}
+
+/**
+ * @swagger
+ * /api/admin/tournaments/{id}/participants:
+ *   post:
+ *     tags:
+ *       - Admin - Tournament Participants
+ *     summary: Tao participant (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien tao participant.'
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - displayName
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *               memberIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               seed:
+ *                 type: integer
+ *               status:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (admin only)
+ *       404:
+ *         description: Tournament not found
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    await getCurrentAdminFromRequest(request);
+
+    const body = await request.json();
+    const dto = await validateBody(CreateTournamentParticipantDtoSchema, body);
+
+    const created = await participantService.createParticipant(params.id, dto);
+
+    return successResponse(created, 201);
+  } catch (error: any) {
+    return errorResponse(error);
   }
 }

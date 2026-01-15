@@ -1,16 +1,17 @@
 /**
  * Admin Tournament Detail API Routes
  *
- * GET /api/admin/tournaments/:id - Get tournament details
+ * GET /api/admin/tournaments/:id - Get tournament detail
  * PATCH /api/admin/tournaments/:id - Update tournament
- * DELETE /api/admin/tournaments/:id - Delete tournament (soft delete)
+ * DELETE /api/admin/tournaments/:id - Delete tournament
  */
 
 import { NextRequest } from 'next/server';
 import { TournamentService } from '@/server/modules/tournament/application/tournament.service';
 import { getCurrentAdminFromRequest } from '@/server/http/middleware/admin.middleware';
 import { successResponse, errorResponse } from '@/server/http/utils/response.helper';
-import { UpdateTournamentDto } from '@/server/modules/tournament/domain/tournament.types';
+import { validateBody } from '@/server/http/utils/validation.helper';
+import { UpdateTournamentDtoSchema } from '@/shared/dtos';
 
 const tournamentService = new TournamentService();
 
@@ -20,8 +21,8 @@ const tournamentService = new TournamentService();
  *   get:
  *     tags:
  *       - Admin - Tournaments
- *     summary: Get tournament details (Admin)
- *     description: Get detailed information about a specific tournament
+ *     summary: Chi tiet giai dau (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien xem chi tiet giai dau.'
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -38,26 +39,16 @@ const tournamentService = new TournamentService();
  *       403:
  *         description: Forbidden (admin only)
  *       404:
- *         description: Tournament not found
+ *         description: Not found
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    // Authenticate admin
-    const currentAdmin = await getCurrentAdminFromRequest(request);
+    await getCurrentAdminFromRequest(request);
 
-    // Build request context
-    const ctx = {
-      user: {
-        id: currentAdmin.id,
-        role: 'ADMIN' as const,
-      },
-    };
-
-    // Get tournament
-    const tournament = await tournamentService.getTournamentById(params.id, ctx);
+    const tournament = await tournamentService.getTournamentById(params.id);
 
     return successResponse(tournament);
   } catch (error: any) {
@@ -71,8 +62,8 @@ export async function GET(
  *   patch:
  *     tags:
  *       - Admin - Tournaments
- *     summary: Update tournament (Admin)
- *     description: Update tournament details and configuration
+ *     summary: Cap nhat giai dau (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien cap nhat giai dau.'
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -92,60 +83,35 @@ export async function GET(
  *                 type: string
  *               description:
  *                 type: string
- *               registrationStartTime:
+ *                 nullable: true
+ *               matchFormat:
  *                 type: string
- *                 format: date-time
- *               isTentative:
- *                 type: boolean
- *               singleStageConfig:
- *                 type: object
- *               twoStagesConfig:
- *                 type: object
+ *                 enum: [SINGLE, DOUBLES]
  *     responses:
  *       200:
- *         description: Updated successfully
+ *         description: Updated
  *       400:
- *         description: Invalid input
+ *         description: Validation error
  *       401:
  *         description: Unauthorized
  *       403:
  *         description: Forbidden (admin only)
  *       404:
- *         description: Tournament not found
+ *         description: Not found
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    // Authenticate admin
-    const currentAdmin = await getCurrentAdminFromRequest(request);
+    await getCurrentAdminFromRequest(request);
 
-    // Parse request body
     const body = await request.json();
+    const dto = await validateBody(UpdateTournamentDtoSchema, body);
 
-    // Build DTO
-    const dto: UpdateTournamentDto = {
-      name: body.name,
-      description: body.description,
-      registrationStartTime: body.registrationStartTime,
-      isTentative: body.isTentative,
-      singleStageConfig: body.singleStageConfig,
-      twoStagesConfig: body.twoStagesConfig,
-    };
+    const updated = await tournamentService.updateTournament(params.id, dto);
 
-    // Build request context
-    const ctx = {
-      user: {
-        id: currentAdmin.id,
-        role: 'ADMIN' as const,
-      },
-    };
-
-    // Update tournament
-    const tournament = await tournamentService.updateTournament(params.id, dto, ctx);
-
-    return successResponse(tournament);
+    return successResponse(updated);
   } catch (error: any) {
     return errorResponse(error);
   }
@@ -157,8 +123,8 @@ export async function PATCH(
  *   delete:
  *     tags:
  *       - Admin - Tournaments
- *     summary: Delete tournament (Admin)
- *     description: Soft delete a tournament
+ *     summary: Xoa giai dau (Admin)
+ *     description: 'Ai goi: Admin Portal. Khi nao: quan tri vien xoa giai dau (xoa vinh vien).'
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -169,34 +135,24 @@ export async function PATCH(
  *           type: string
  *     responses:
  *       200:
- *         description: Tournament deleted successfully
+ *         description: Deleted
  *       401:
  *         description: Unauthorized
  *       403:
  *         description: Forbidden (admin only)
  *       404:
- *         description: Tournament not found
+ *         description: Not found
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    // Authenticate admin
-    const currentAdmin = await getCurrentAdminFromRequest(request);
+    await getCurrentAdminFromRequest(request);
 
-    // Build request context
-    const ctx = {
-      user: {
-        id: currentAdmin.id,
-        role: 'ADMIN' as const,
-      },
-    };
+    await tournamentService.deleteTournament(params.id);
 
-    // Delete tournament
-    await tournamentService.deleteTournament(params.id, ctx);
-
-    return successResponse({ message: 'Tournament deleted successfully' });
+    return successResponse({ message: 'Da xoa giai dau thanh cong' });
   } catch (error: any) {
     return errorResponse(error);
   }

@@ -1,16 +1,19 @@
 'use client';
 
-/**
- * Tournaments List Client Component
- * Mobile-first, modern UI with filters and actions (Vietnamese)
- */
-
-import { useState, useEffect } from 'react';
+import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -18,12 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,421 +40,392 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Trophy,
-  Plus,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Users,
-  CalendarDays,
-  Filter,
-  Search,
-} from 'lucide-react';
-import { Tournament, TournamentStatus, TournamentGameType } from '@/types/tournament';
-import { tournamentsApi, ApiError } from '@/lib/api-client';
-import { TournamentFormDialog } from './tournament-form-dialog';
-import { format } from 'date-fns';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, Trash2, Trophy, Plus } from 'lucide-react';
+import type { PaginationMeta, Tournament } from './actions';
+import { createTournament, deleteTournament } from './actions';
 
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
-  initialPagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
+  initialPagination: PaginationMeta;
+  searchParams: {
+    search?: string;
+    page?: string;
+    orderBy?: 'createdAt' | 'name';
+    order?: 'asc' | 'desc';
   };
 }
 
-const STATUS_COLORS: Record<TournamentStatus, string> = {
-  DRAFT: 'bg-gray-500',
-  PENDING: 'bg-blue-500',
-  IN_PROGRESS: 'bg-green-500',
-  COMPLETED: 'bg-purple-500',
-  CANCELLED: 'bg-red-500',
-};
-
-const STATUS_LABELS: Record<TournamentStatus, string> = {
-  DRAFT: 'Nháp',
-  PENDING: 'Sắp diễn ra',
-  IN_PROGRESS: 'Đang diễn ra',
-  COMPLETED: 'Đã kết thúc',
-  CANCELLED: 'Đã hủy',
-};
-
-const GAME_TYPE_LABELS: Record<TournamentGameType, string> = {
-  SINGLE_STAGE: 'Một vòng',
-  TWO_STAGES: 'Hai vòng',
-};
-
 export function TournamentsClient({
   initialTournaments,
-  initialPagination
+  initialPagination,
+  searchParams,
 }: TournamentsClientProps) {
   const router = useRouter();
-  const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments);
-  const [pagination, setPagination] = useState(initialPagination);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState(searchParams.search || '');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
+  const [createMatchFormat, setCreateMatchFormat] = useState<'SINGLE' | 'DOUBLES'>('SINGLE');
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Filters
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [gameTypeFilter, setGameTypeFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const handleSearch = () => {
+    const params = new URLSearchParams(searchParams);
+    if (search) {
+      params.set('search', search);
+    } else {
+      params.delete('search');
+    }
+    params.set('page', '1');
+    startTransition(() => {
+      router.push(`/tournaments?${params.toString()}`);
+    });
+  };
 
-  // Dialogs
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
-  const [deletingTournament, setDeletingTournament] = useState<Tournament | null>(null);
+  const handleSortChange = (key: 'orderBy' | 'order', value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    params.set('page', '1');
+    startTransition(() => {
+      router.push(`/tournaments?${params.toString()}`);
+    });
+  };
 
-  // Fetch tournaments on initial mount
-  useEffect(() => {
-    fetchTournaments();
-  }, []);
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', newPage.toString());
+    startTransition(() => {
+      router.push(`/tournaments?${params.toString()}`);
+    });
+  };
 
-  const fetchTournaments = async () => {
-    setLoading(true);
+  const handleCreate = async () => {
+    setCreateError(null);
+
+    if (createName.trim().length < 2) {
+      setCreateError('Tên giải đấu phải có ít nhất 2 ký tự.');
+      return;
+    }
+
+    setIsCreating(true);
+
     try {
-      const result = await tournamentsApi.listTournaments({
-        page: pagination?.page || 1,
-        limit: pagination?.limit || 20,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        gameType: gameTypeFilter !== 'all' ? gameTypeFilter : undefined,
+      await createTournament({
+        name: createName.trim(),
+        description: createDescription.trim() || undefined,
+        matchFormat: createMatchFormat,
       });
-
-      setTournaments(result.data);
-      setPagination(result.meta);
-    } catch (error) {
-      console.error('Lỗi khi tải danh sách giải đấu:', error);
+      setCreateOpen(false);
+      setCreateName('');
+      setCreateDescription('');
+      setCreateMatchFormat('SINGLE');
+      router.refresh();
+    } catch (error: any) {
+      setCreateError(error.message || 'Không thể tạo giải đấu.');
     } finally {
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deletingTournament) return;
+  const handleDelete = async (id: string) => {
+    setDeleteId(id);
 
     try {
-      await tournamentsApi.deleteTournament(deletingTournament.id);
-      setDeletingTournament(null);
-      fetchTournaments();
+      await deleteTournament(id);
+      router.refresh();
     } catch (error) {
-      console.error('Lỗi khi xóa giải đấu:', error);
-      alert(error instanceof ApiError ? error.message : 'Không thể xóa giải đấu');
+      console.error(error);
+    } finally {
+      setDeleteId(null);
     }
   };
-
-  const handleFilterChange = () => {
-    fetchTournaments();
-  };
-
-  // Filter tournaments by search query
-  const filteredTournaments = tournaments.filter((tournament) =>
-    searchQuery === '' ||
-    tournament.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (tournament.description?.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Giải đấu</h1>
-          <p className="text-sm text-muted-foreground md:text-base">
-            Quản lý các giải đấu và lịch thi đấu
+          <h1 className="text-3xl font-bold">Quản lý Giải đấu</h1>
+          <p className="text-muted-foreground">
+            Tạo và theo dõi giải đấu cùng các stage liên quan
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full md:w-auto">
+        <Button onClick={() => setCreateOpen(true)} className="lg:mt-1">
           <Plus className="mr-2 h-4 w-4" />
           Tạo giải đấu
         </Button>
       </div>
 
-      {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <CardHeader>
+          <CardTitle>Bộ lọc nhanh</CardTitle>
+          <CardDescription>Tìm giải đấu theo tên hoặc sắp xếp</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <div className="flex flex-1 gap-2">
               <Input
-                placeholder="Tìm kiếm giải đấu..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                placeholder="Nhập tên giải đấu..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => event.key === 'Enter' && handleSearch()}
               />
+              <Button onClick={handleSearch} disabled={isPending}>
+                <Search className="mr-2 h-4 w-4" />
+                Tìm
+              </Button>
             </div>
 
-            {/* Filter Toggle Button (Mobile) */}
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="w-full md:hidden"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-            </Button>
-
-            {/* Filters (Desktop always visible, Mobile toggleable) */}
-            <div className={`grid gap-4 md:grid-cols-3 ${showFilters ? 'grid' : 'hidden md:grid'}`}>
-              <Select value={statusFilter} onValueChange={(value) => {
-                setStatusFilter(value);
-                setTimeout(handleFilterChange, 0);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Lọc theo trạng thái" />
+            <div className="flex gap-2">
+              <Select
+                value={searchParams.orderBy || 'createdAt'}
+                onValueChange={(value) => handleSortChange('orderBy', value)}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Sắp xếp theo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="DRAFT">Nháp</SelectItem>
-                  <SelectItem value="PENDING">Sắp diễn ra</SelectItem>
-                  <SelectItem value="IN_PROGRESS">Đang diễn ra</SelectItem>
-                  <SelectItem value="COMPLETED">Đã kết thúc</SelectItem>
-                  <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+                  <SelectItem value="createdAt">Ngày tạo</SelectItem>
+                  <SelectItem value="name">Tên giải đấu</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={gameTypeFilter} onValueChange={(value) => {
-                setGameTypeFilter(value);
-                setTimeout(handleFilterChange, 0);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Lọc theo loại" />
+              <Select
+                value={searchParams.order || 'desc'}
+                onValueChange={(value) => handleSortChange('order', value)}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Thứ tự" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả loại</SelectItem>
-                  <SelectItem value="SINGLE_STAGE">Một vòng</SelectItem>
-                  <SelectItem value="TWO_STAGES">Hai vòng</SelectItem>
+                  <SelectItem value="desc">Mới nhất</SelectItem>
+                  <SelectItem value="asc">Cũ nhất</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-              <Button variant="outline" onClick={handleFilterChange} disabled={loading}>
-                {loading ? 'Đang tải...' : 'Áp dụng'}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách giải đấu</CardTitle>
+          <CardDescription>
+            Hiển thị {initialTournaments.length} / {initialPagination.total} giải đấu
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tên giải đấu</TableHead>
+                  <TableHead>Mô tả</TableHead>
+                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {initialTournaments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      Chưa có giải đấu nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  initialTournaments.map((tournament) => (
+                    <TableRow key={tournament.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-4 w-4 text-muted-foreground" />
+                          {tournament.name}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {tournament.description || 'Chưa có mô tả'}
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(tournament.createdAt), 'dd/MM/yyyy')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href={`/tournaments/${tournament.id}`}>Chi tiết</Link>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xóa giải đấu?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Giải đấu sẽ bị xóa vĩnh viễn và không thể khôi phục.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(tournament.id)}
+                                  disabled={deleteId === tournament.id}
+                                >
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex flex-col gap-4 lg:hidden">
+            {initialTournaments.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">Chưa có giải đấu nào</div>
+            ) : (
+              initialTournaments.map((tournament) => (
+                <Card key={tournament.id}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{tournament.name}</CardTitle>
+                    <CardDescription>
+                      {tournament.description || 'Chưa có mô tả'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between">
+                    <Badge variant="secondary">
+                      {format(new Date(tournament.createdAt), 'dd/MM/yyyy')}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/tournaments/${tournament.id}`}>Chi tiết</Link>
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa giải đấu?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Giải đấu sẽ bị xóa vĩnh viễn và không thể khôi phục.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(tournament.id)}
+                              disabled={deleteId === tournament.id}
+                            >
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
+            <span>
+              Trang {initialPagination.page} / {initialPagination.totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={initialPagination.page <= 1 || isPending}
+                onClick={() => handlePageChange(initialPagination.page - 1)}
+              >
+                Trước
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={initialPagination.page >= initialPagination.totalPages || isPending}
+                onClick={() => handlePageChange(initialPagination.page + 1)}
+              >
+                Sau
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tổng số
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pagination?.total || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Đang diễn ra
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tournaments.filter((t) => t.status === 'IN_PROGRESS').length}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tạo giải đấu mới</DialogTitle>
+            <DialogDescription>
+              Thiết lập tên và mô tả nhanh để bắt đầu quản lý stage.
+            </DialogDescription>
+          </DialogHeader>
+
+          {createError && (
+            <Alert variant="destructive">
+              <AlertDescription>{createError}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tên giải đấu</label>
+              <Input
+                placeholder="Giải đấu mùa xuân 2025"
+                value={createName}
+                onChange={(event) => setCreateName(event.target.value)}
+              />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Sắp diễn ra
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tournaments.filter((t) => t.status === 'PENDING').length}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Mô tả</label>
+              <Input
+                placeholder="Sân số 1, 2 - vòng bảng + loại trực tiếp"
+                value={createDescription}
+                onChange={(event) => setCreateDescription(event.target.value)}
+              />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Đã kết thúc
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tournaments.filter((t) => t.status === 'COMPLETED').length}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Loại giải đấu</label>
+              <Select value={createMatchFormat} onValueChange={(value: 'SINGLE' | 'DOUBLES') => setCreateMatchFormat(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn loại giải đấu" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SINGLE">Đấu đơn (Singles)</SelectItem>
+                  <SelectItem value="DOUBLES">Đấu đôi (Doubles)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tournament Cards */}
-      {filteredTournaments.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Chưa có giải đấu nào</p>
-            <p className="text-sm text-muted-foreground">Tạo giải đấu đầu tiên để bắt đầu</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTournaments.map((tournament) => (
-            <Card key={tournament.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-1">{tournament.name}</CardTitle>
-                    <CardDescription className="mt-1 line-clamp-2">
-                      {tournament.description || 'Chưa có mô tả'}
-                    </CardDescription>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="-mr-2">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingTournament(tournament)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setDeletingTournament(tournament)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {/* Status and Type */}
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className={STATUS_COLORS[tournament.status]}>
-                      {STATUS_LABELS[tournament.status]}
-                    </Badge>
-                    <Badge variant="outline">
-                      {GAME_TYPE_LABELS[tournament.gameType]}
-                    </Badge>
-                    {tournament.isTentative && (
-                      <Badge variant="secondary">Tạm thời</Badge>
-                    )}
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>{tournament.participantsCount || 0} người</span>
-                    </div>
-                    {tournament.registrationStartTime && (
-                      <div className="flex items-center gap-1">
-                        <CalendarDays className="h-4 w-4" />
-                        <span>
-                          {format(new Date(tournament.registrationStartTime), 'dd/MM/yyyy')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* View Button */}
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push(`/tournaments/${tournament.id}`)}
-                  >
-                    Xem chi tiết
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex flex-col items-center gap-2 md:flex-row md:justify-between">
-          <p className="text-sm text-muted-foreground">
-            Hiển thị {((pagination.page - 1) * pagination.limit) + 1} đến{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} trong tổng số{' '}
-            {pagination.total} giải đấu
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setPagination({ ...pagination, page: pagination.page - 1 });
-                setTimeout(fetchTournaments, 0);
-              }}
-              disabled={pagination.page === 1 || loading}
-            >
-              Trước
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setPagination({ ...pagination, page: pagination.page + 1 });
-                setTimeout(fetchTournaments, 0);
-              }}
-              disabled={pagination.page >= pagination.totalPages || loading}
-            >
-              Sau
-            </Button>
           </div>
-        </div>
-      )}
 
-      {/* Create Dialog */}
-      <TournamentFormDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSuccess={() => {
-          setShowCreateDialog(false);
-          fetchTournaments();
-        }}
-      />
-
-      {/* Edit Dialog */}
-      {editingTournament && (
-        <TournamentFormDialog
-          open={!!editingTournament}
-          onOpenChange={(open) => !open && setEditingTournament(null)}
-          tournament={editingTournament}
-          onSuccess={() => {
-            setEditingTournament(null);
-            fetchTournaments();
-          }}
-        />
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!deletingTournament}
-        onOpenChange={(open) => !open && setDeletingTournament(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa giải đấu?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa giải đấu "{deletingTournament?.name}"? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              Hủy
+            </Button>
+            <Button onClick={handleCreate} disabled={isCreating}>
+              {isCreating ? 'Đang tạo...' : 'Tạo giải đấu'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

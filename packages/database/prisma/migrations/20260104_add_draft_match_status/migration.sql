@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "MatchStatus" ADD VALUE 'DRAFT' BEFORE 'SCHEDULED';

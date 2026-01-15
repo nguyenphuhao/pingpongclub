@@ -90,8 +90,8 @@ model User {
   devices                  Device[]
   loginHistory             LoginHistory[]
   ratingHistory            RatingHistory[]
-  matchParticipations      MatchParticipant[]
-  tournamentParticipations TournamentParticipant[]
+  tournamentParticipants   TournamentParticipant[]
+  tournamentParticipantMembers TournamentParticipantMember[]
 
   @@index([email])
   @@index([firebaseUid])
@@ -411,7 +411,6 @@ model RatingHistory {
 
   // Reason for change
   changeReason RatingChangeReason @map("change_reason")
-  matchId      String?            @map("match_id")
   notes        String?
 
   // Timestamp
@@ -419,11 +418,9 @@ model RatingHistory {
 
   // Relations
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match Match? @relation(fields: [matchId], references: [id])
 
   @@index([userId])
   @@index([changedAt])
-  @@index([matchId])
   @@map("rating_history")
 }
 
@@ -437,84 +434,351 @@ enum RatingChangeReason {
 }
 
 // ============================================
-// MATCHES
+// TOURNAMENTS
 // ============================================
 
+model Tournament {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  matchFormat MatchFormat @default(SINGLE) @map("match_format")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  participants TournamentParticipant[]
+  stages       Stage[]
+  drawSessions DrawSession[]
+
+  @@map("tournaments")
+}
+
+model TournamentParticipant {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tournamentId String   @map("tournament_id") @db.Uuid
+  userId       String?  @map("user_id")
+  displayName  String   @map("display_name")
+  seed         Int?
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tournament       Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user            User?      @relation(fields: [userId], references: [id])
+  members         TournamentParticipantMember[]
+  groupMembers     GroupMember[]
+  matchSideMembers MatchSideMember[]
+  groupStandings   GroupStanding[]
+
+  @@unique([tournamentId, displayName])
+  @@index([userId])
+  @@map("tournament_participants")
+}
+
+model TournamentParticipantMember {
+  tournamentParticipantId String   @map("tournament_participant_id") @db.Uuid
+  userId                  String   @map("user_id")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  tournamentParticipant TournamentParticipant @relation(fields: [tournamentParticipantId], references: [id], onDelete: Cascade)
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([tournamentParticipantId, userId])
+  @@index([userId])
+  @@map("tournament_participant_members")
+}
+
+model Stage {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tournamentId String    @map("tournament_id") @db.Uuid
+  name         String
+  type         StageType
+  stageOrder   Int       @map("stage_order")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  groups     Group[]
+  matches    Match[]
+  stageRules StageRule?
+  drawSessions DrawSession[]
+
+  @@map("stages")
+}
+
+model Group {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stageId    String  @map("stage_id") @db.Uuid
+  name       String
+  groupOrder Int?    @map("group_order")
+
+  stage        Stage          @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  members      GroupMember[]
+  matches      Match[]
+  standings    GroupStanding[]
+  bracketSlots BracketSlot[]
+  drawAssignments DrawGroupAssignment[]
+
+  @@unique([stageId, name])
+  @@map("groups")
+}
+
+model GroupMember {
+  groupId                 String @map("group_id") @db.Uuid
+  tournamentParticipantId String @map("tournament_participant_id") @db.Uuid
+  seedInGroup             Int?   @map("seed_in_group")
+  status                  String @default("active")
+
+  group                 Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tournamentParticipant TournamentParticipant @relation(fields: [tournamentParticipantId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, tournamentParticipantId])
+  @@map("group_members")
+}
+
 model Match {
-  id String @id @default(cuid())
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stageId   String      @map("stage_id") @db.Uuid
+  groupId   String?     @map("group_id") @db.Uuid
+  roundNo   Int?        @map("round_no")
+  matchNo   Int?        @map("match_no")
+  bestOf    Int         @map("best_of")
+  status    MatchStatus @default(SCHEDULED)
+  createdAt DateTime    @default(now()) @map("created_at")
 
-  matchType MatchType
-  matchDate DateTime  @map("match_date")
+  stage              Stage         @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  group              Group?        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sides              MatchSide[]
+  games              Game[]
+  bracketSlotsTarget BracketSlot[] @relation("BracketSlotTarget")
+  bracketSlotsSource BracketSlot[] @relation("BracketSlotSource")
 
-  // Challonge sync
-  challongeMatchId String?   @unique @map("challonge_match_id")
-  challongeRawData Json?     @map("challonge_raw_data")
-  challongeRound   Int?      @map("challonge_round")
-  lastSyncedAt     DateTime? @map("last_synced_at")
-  syncVersion      Int       @default(0) @map("sync_version")
-
-  // Match metadata
-  round       String? // "Quarter-final", "Semi-final", etc.
-  courtNumber String? @map("court_number")
-
-  // Status
-  status MatchStatus @default(SCHEDULED)
-
-  // Results
-  finalScore String? @map("final_score") // "3-2", "11-9,11-7,9-11"
-  winnerId   String? @map("winner_id")
-
-  // Metadata
-  notes     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  participants  MatchParticipant[]
-  ratingChanges RatingHistory[]
-
-  @@index([matchDate])
-  @@index([status])
-  @@index([winnerId])
-  @@index([challongeMatchId])
   @@map("matches")
 }
 
-model MatchParticipant {
-  id      String @id @default(cuid())
-  matchId String @map("match_id")
-  userId  String @map("user_id")
+model MatchSide {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId        String         @map("match_id") @db.Uuid
+  side           MatchSideLabel
+  isWinner       Boolean?       @map("is_winner")
+  walkoverReason String?        @map("walkover_reason")
 
-  // Result
-  isWinner Boolean? @map("is_winner")
-  score    String? // Individual score if applicable
+  match   Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  members MatchSideMember[]
 
-  // Rating change from this match
-  ratingBefore Int @map("rating_before")
-  ratingAfter  Int @map("rating_after")
-  ratingChange Int @map("rating_change")
-
-  // Relations
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([matchId, userId])
-  @@index([matchId])
-  @@index([userId])
-  @@map("match_participants")
+  @@unique([matchId, side])
+  @@map("match_sides")
 }
 
-enum MatchType {
-  SINGLES
+model MatchSideMember {
+  matchSideId             String @map("match_side_id") @db.Uuid
+  tournamentParticipantId String @map("tournament_participant_id") @db.Uuid
+
+  matchSide             MatchSide             @relation(fields: [matchSideId], references: [id], onDelete: Cascade)
+  tournamentParticipant TournamentParticipant @relation(fields: [tournamentParticipantId], references: [id])
+
+  @@id([matchSideId, tournamentParticipantId])
+  @@map("match_side_members")
+}
+
+model Game {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId    String   @map("match_id") @db.Uuid
+  gameNo     Int      @map("game_no")
+  scoreA     Int      @map("score_a")
+  scoreB     Int      @map("score_b")
+  finishedAt DateTime? @map("finished_at")
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, gameNo])
+  @@map("games")
+}
+
+model StageRule {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stageId               String   @map("stage_id") @db.Uuid
+  winPoints             Int      @default(1) @map("win_points")
+  lossPoints            Int      @default(0) @map("loss_points")
+  byePoints             Int      @default(1) @map("bye_points")
+  countByeGamesPoints   Boolean  @default(false) @map("count_bye_games_points")
+  countWalkoverAsPlayed Boolean  @default(true) @map("count_walkover_as_played")
+  tieBreakOrder         Json     @map("tie_break_order")
+  h2hMode               H2hMode  @map("h2h_mode")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  stage Stage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@unique([stageId])
+  @@map("stage_rules")
+}
+
+model StageRulePreset {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                 String         @unique
+  name                 String
+  description          String?
+  winPoints            Int            @default(1) @map("win_points")
+  lossPoints           Int            @default(0) @map("loss_points")
+  byePoints            Int            @default(1) @map("bye_points")
+  countByeGamesPoints  Boolean        @default(false) @map("count_bye_games_points")
+  countWalkoverAsPlayed Boolean       @default(true) @map("count_walkover_as_played")
+  tieBreakOrder        Json           @map("tie_break_order")
+  h2hMode              H2hMode        @map("h2h_mode")
+  qualifyMode          QualifyMode    @default(TOP_N_PER_GROUP) @map("qualify_mode")
+  topNPerGroup         Int?           @map("top_n_per_group")
+  topNOverall          Int?           @map("top_n_overall")
+  wildcardCount        Int            @default(0) @map("wildcard_count")
+  isActive             Boolean        @default(true) @map("is_active")
+  createdAt            DateTime       @default(now()) @map("created_at")
+
+  @@index([isActive, createdAt])
+  @@map("stage_rule_presets")
+}
+
+model GroupStanding {
+  groupId                 String   @map("group_id") @db.Uuid
+  tournamentParticipantId String   @map("tournament_participant_id") @db.Uuid
+  rank                    Int?
+  matchPoints             Int?     @map("match_points")
+  matchesWon              Int?     @map("matches_won")
+  matchesLost             Int?     @map("matches_lost")
+  gamesWon                Int?     @map("games_won")
+  gamesLost               Int?     @map("games_lost")
+  pointsWon               Int?     @map("points_won")
+  pointsLost              Int?     @map("points_lost")
+  note                    String?
+  updatedAt               DateTime @default(now()) @map("updated_at")
+
+  group                 Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tournamentParticipant TournamentParticipant @relation(fields: [tournamentParticipantId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, tournamentParticipantId])
+  @@map("group_standings")
+}
+
+model BracketSlot {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  targetMatchId String            @map("target_match_id") @db.Uuid
+  targetSide    MatchSideLabel    @map("target_side")
+  sourceType    BracketSourceType @map("source_type")
+  sourceMatchId String?           @map("source_match_id") @db.Uuid
+  sourceGroupId String?           @map("source_group_id") @db.Uuid
+  sourceRank    Int?              @map("source_rank")
+  sourceSeed    Int?              @map("source_seed")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  targetMatch Match  @relation("BracketSlotTarget", fields: [targetMatchId], references: [id], onDelete: Cascade)
+  sourceMatch Match? @relation("BracketSlotSource", fields: [sourceMatchId], references: [id], onDelete: Cascade)
+  sourceGroup Group? @relation(fields: [sourceGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([targetMatchId, targetSide])
+  @@map("bracket_slots")
+}
+
+model DrawSession {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tournamentId String     @map("tournament_id") @db.Uuid
+  stageId      String?    @map("stage_id") @db.Uuid
+  type         DrawType
+  status       DrawStatus @default(DRAFT)
+  payload      Json
+  result       Json
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  stage      Stage?     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  pairings   DrawPairing[]
+  groupAssignments DrawGroupAssignment[]
+
+  @@index([tournamentId, type, createdAt])
+  @@map("draw_sessions")
+}
+
+model DrawPairing {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  drawSessionId String   @map("draw_session_id") @db.Uuid
+  sideAId       String   @map("side_a_id")
+  sideBId       String?  @map("side_b_id")
+  order         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  drawSession DrawSession @relation(fields: [drawSessionId], references: [id], onDelete: Cascade)
+
+  @@index([drawSessionId, order])
+  @@map("draw_pairings")
+}
+
+model DrawGroupAssignment {
+  drawSessionId           String @map("draw_session_id") @db.Uuid
+  groupId                 String @map("group_id") @db.Uuid
+  tournamentParticipantId String @map("tournament_participant_id") @db.Uuid
+  seedInGroup             Int?   @map("seed_in_group")
+
+  drawSession DrawSession @relation(fields: [drawSessionId], references: [id], onDelete: Cascade)
+  group       Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([drawSessionId, groupId, tournamentParticipantId])
+  @@map("draw_group_assignments")
+}
+
+enum StageType {
+  GROUP    @map("group")
+  KNOCKOUT @map("knockout")
+
+  @@map("stage_type")
+}
+
+enum MatchFormat {
+  SINGLE
   DOUBLES
-  TEAM
-  PRACTICE
 }
 
 enum MatchStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
+  SCHEDULED @map("scheduled")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED @map("completed")
+  CANCELLED @map("cancelled")
+
+  @@map("match_status")
+}
+
+enum MatchSideLabel {
+  A @map("A")
+  B @map("B")
+
+  @@map("match_side_label")
+}
+
+enum H2hMode {
+  TWO_WAY_ONLY @map("two_way_only")
+  MINI_TABLE   @map("mini_table")
+
+  @@map("h2h_mode")
+}
+
+enum QualifyMode {
+  TOP_N_PER_GROUP @map("top_n_per_group")
+  TOP_N_OVERALL   @map("top_n_overall")
+  CUSTOM          @map("custom")
+
+  @@map("qualify_mode")
+}
+
+enum BracketSourceType {
+  MATCH_WINNER @map("match_winner")
+  GROUP_RANK   @map("group_rank")
+  SEED         @map("seed")
+
+  @@map("bracket_source_type")
+}
+
+enum DrawType {
+  DOUBLES_PAIRING
+  GROUP_ASSIGNMENT
+  KNOCKOUT_PAIRING
+}
+
+enum DrawStatus {
+  DRAFT
+  APPLIED
   CANCELLED
 }
 
@@ -551,220 +815,3 @@ enum MatchStatus {
 //   FAILED
 //   CANCELLED
 // }
-
-// ============================================
-// TOURNAMENT SYSTEM
-// ============================================
-
-model Tournament {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  game        String   @default("TABLE_TENNIS")
-
-  // Tournament Type
-  gameType TournamentGameType @map("game_type") // SINGLE_STAGE | TWO_STAGES
-
-  // Tournament Status
-  status TournamentStatus @default(PENDING)
-
-  // Registration
-  registrationStartTime DateTime? @map("registration_start_time")
-  isTentative           Boolean   @default(false) @map("is_tentative")
-
-  // Configuration stored as JSON
-  singleStageConfig Json? @map("single_stage_config")
-  twoStagesConfig   Json? @map("two_stages_config")
-
-  // Participants Lock State
-  participantsLocked Boolean @default(false) @map("participants_locked")
-
-  // Challonge Integration
-  challongeId       String?   @unique @map("challonge_id")
-  challongeUrl      String?   @map("challonge_url")
-  lastSyncedAt      DateTime? @map("last_synced_at")
-
-  // Timestamps
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  // Relations
-  participants TournamentParticipant[]
-  groups       TournamentGroup[]
-  matches      TournamentMatch[]
-
-  @@index([status])
-  @@index([gameType])
-  @@index([challongeId])
-  @@map("tournaments")
-}
-
-model TournamentParticipant {
-  id           String @id @default(cuid())
-  tournamentId String @map("tournament_id")
-  userId       String? @map("user_id") // Nullable for virtual participants
-
-  // Virtual Participant Support
-  isVirtual       Boolean @default(false) @map("is_virtual")
-  displayName     String? @map("display_name") // For virtual participants like "Nhất bảng A"
-  advancingSource String? @map("advancing_source") // JSON: {type: 'group', groupId: 'A', rank: 1} or {type: 'match', matchId: 'xxx', position: 'winner'}
-
-  // Seeding
-  seed Int?
-
-  // Group Assignment (for two-stage tournaments)
-  groupId String? @map("group_id")
-
-  // Registration
-  registeredAt DateTime @default(now()) @map("registered_at")
-
-  // Status
-  status ParticipantStatus @default(REGISTERED)
-
-  // Challonge sync
-  challongeParticipantId String? @unique @map("challonge_participant_id")
-
-  // Relations
-  tournament Tournament       @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  user       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group      TournamentGroup?  @relation(fields: [groupId], references: [id])
-  matches    TournamentMatchParticipant[]
-
-  @@unique([tournamentId, userId])
-  @@index([tournamentId])
-  @@index([userId])
-  @@index([groupId])
-  @@index([isVirtual])
-  @@map("tournament_participants")
-}
-
-model TournamentGroup {
-  id           String @id @default(cuid())
-  tournamentId String @map("tournament_id")
-
-  name        String // "Group A", "Group B", etc.
-  displayName String @map("display_name") // For display purposes
-
-  // Configuration
-  participantsPerGroup Int @default(4) @map("participants_per_group")
-  participantsAdvancing Int @default(2) @map("participants_advancing")
-
-  // Status
-  status GroupStatus @default(PENDING)
-
-  // Relations
-  tournament   Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  participants TournamentParticipant[]
-  matches      TournamentMatch[]
-
-  @@index([tournamentId])
-  @@map("tournament_groups")
-}
-
-model TournamentMatch {
-  id           String @id @default(cuid())
-  tournamentId String @map("tournament_id")
-  groupId      String? @map("group_id") // null for final stage matches
-
-  // Match Info
-  stage      TournamentStage // GROUP | FINAL
-  round      Int             // 1, 2, 3... or negative for losers bracket
-  matchNumber Int           @map("match_number") // Position in round
-
-  // Bracket Position (for single elimination)
-  bracketPosition Int? @map("bracket_position")
-
-  // Match Details
-  matchDate   DateTime? @map("match_date")
-  courtNumber String?   @map("court_number")
-
-  // Status
-  status MatchStatus @default(SCHEDULED)
-
-  // Results
-  winnerId   String? @map("winner_id")
-  finalScore String? @map("final_score") // "3-1" or "11-9,11-7,9-11,11-8"
-
-  // Game Scores (stored as JSON array)
-  gameScores Json? @map("game_scores")
-
-  // Placement Match
-  isPlacementMatch Boolean @default(false) @map("is_placement_match")
-  placementRank    Int?    @map("placement_rank") // 3 for 3rd place match
-
-  // Challonge sync
-  challongeMatchId String?   @unique @map("challonge_match_id")
-  challongeRound   Int?      @map("challonge_round")
-  lastSyncedAt     DateTime? @map("last_synced_at")
-
-  // Timestamps
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  tournament   Tournament                   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  group        TournamentGroup?             @relation(fields: [groupId], references: [id])
-  participants TournamentMatchParticipant[]
-
-  @@index([tournamentId])
-  @@index([groupId])
-  @@index([status])
-  @@index([stage])
-  @@index([winnerId])
-  @@map("tournament_matches")
-}
-
-model TournamentMatchParticipant {
-  id        String @id @default(cuid())
-  matchId   String @map("match_id")
-  participantId String @map("participant_id")
-
-  // Position in match (1 or 2)
-  position Int
-
-  // Result
-  isWinner Boolean? @map("is_winner")
-  score    String?  // Individual game scores if needed
-
-  // Relations
-  match       TournamentMatch       @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  participant TournamentParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-
-  @@unique([matchId, participantId])
-  @@index([matchId])
-  @@index([participantId])
-  @@map("tournament_match_participants")
-}
-
-// Enums
-enum TournamentGameType {
-  SINGLE_STAGE
-  TWO_STAGES
-}
-
-enum TournamentStatus {
-  DRAFT        // Initial state, editing
-  PENDING      // Published, open for registration
-  IN_PROGRESS  // Tournament started
-  COMPLETED    // Tournament finished
-  CANCELLED    // Tournament cancelled
-}
-
-enum ParticipantStatus {
-  REGISTERED   // Successfully registered
-  CHECKED_IN   // Checked in on tournament day
-  WITHDRAWN    // Withdrawn from tournament
-  DISQUALIFIED // Disqualified
-}
-
-enum GroupStatus {
-  PENDING      // Not started
-  IN_PROGRESS  // Matches ongoing
-  COMPLETED    // All matches done
-}
-
-enum TournamentStage {
-  GROUP  // Group stage (for two-stage)
-  FINAL  // Final stage (single elim or main bracket)
-}
